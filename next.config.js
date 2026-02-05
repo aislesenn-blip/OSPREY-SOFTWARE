@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Standard config
+  // Do NOT add basePath
+  // Do NOT add output: 'export'
+  // Do NOT add distDir
+  reactStrictMode: true,
 };
 
 module.exports = nextConfig;
