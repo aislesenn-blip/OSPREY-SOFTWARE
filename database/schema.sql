@@ -271,3 +271,17 @@ create policy "Org isolation for ledger_accounts" on ledger_accounts for all usi
 create policy "Org isolation for ledger_entries" on ledger_entries for all using (organization_id = get_auth_org_id());
 create policy "Org isolation for ledger_lines" on ledger_lines for all using (entry_id in (select id from ledger_entries where organization_id = get_auth_org_id()));
 create policy "Org isolation for gate_passes" on gate_passes for all using (organization_id = get_auth_org_id());
+
+-- AUTOMATED TRIGGER FOR NEW USERS
+create or replace function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.profiles (id, full_name, role)
+  values (new.id, new.raw_user_meta_data->>'full_name', 'admin');
+  return new;
+end;
+$$ language plpgsql security definer;
+
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
