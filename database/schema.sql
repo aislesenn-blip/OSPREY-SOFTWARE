@@ -275,9 +275,43 @@ create policy "Org isolation for gate_passes" on gate_passes for all using (orga
 -- AUTOMATED TRIGGER FOR NEW USERS
 create or replace function public.handle_new_user()
 returns trigger as $$
+declare
+  new_org_id uuid;
+  meta_company_name text;
+  meta_org_id text;
+  meta_full_name text;
+  meta_role text;
 begin
-  insert into public.profiles (id, full_name, role)
-  values (new.id, new.raw_user_meta_data->>'full_name', 'admin');
+  -- Parse metadata
+  meta_company_name := new.raw_user_meta_data->>'company_name';
+  meta_org_id := new.raw_user_meta_data->>'organization_id';
+  meta_full_name := new.raw_user_meta_data->>'full_name';
+  meta_role := new.raw_user_meta_data->>'role';
+
+  -- SCENARIO A: New Company Registration (Admin)
+  if meta_company_name is not null then
+    -- 1. Create Organization
+    insert into public.organizations (name)
+    values (meta_company_name)
+    returning id into new_org_id;
+
+    -- 2. Create Admin Profile linked to new Org
+    insert into public.profiles (id, organization_id, full_name, role)
+    values (new.id, new_org_id, meta_full_name, 'admin');
+
+  -- SCENARIO B: Invited Staff (Existing Org)
+  elsif meta_org_id is not null then
+    insert into public.profiles (id, organization_id, full_name, role)
+    values (new.id, (meta_org_id)::uuid, meta_full_name, meta_role);
+
+  -- SCENARIO C: Fallback (should not happen in prod flows defined)
+  else
+    -- Log warning or do nothing, but for safety we might create a profile without org?
+    -- No, RLS requires org. We leave it to fail or insert null if allowed.
+    -- Ideally, we ensure metadata is always present.
+    null;
+  end if;
+
   return new;
 end;
 $$ language plpgsql security definer;
