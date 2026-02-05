@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { InventoryItem } from '@/types/inventory';
 import Link from 'next/link';
 import { Package, Plus } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 export default function InventoryDashboard() {
   const [items, setItems] = useState<InventoryItem[]>([]);
@@ -11,17 +12,16 @@ export default function InventoryDashboard() {
 
   useEffect(() => {
     async function fetchItems() {
-      try {
-        const res = await fetch('/api/v1/ops/inventory/items');
-        const json = await res.json();
-        if (json.data) {
-          setItems(json.data);
-        }
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
+      const { data, error } = await supabase
+        .from('inventory_items')
+        .select('*');
+
+      if (error) {
+        console.error('Error fetching inventory:', error);
+      } else if (data) {
+        setItems(data as InventoryItem[]);
       }
+      setLoading(false);
     }
     fetchItems();
   }, []);
