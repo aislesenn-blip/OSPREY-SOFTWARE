@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Truck, Fuel, AlertTriangle, Settings } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 interface Vehicle {
   id: string;
@@ -11,7 +12,8 @@ interface Vehicle {
   current_km: number;
   service_due_km: number;
   status: string;
-  is_overdue: boolean;
+  // Computed client-side
+  is_overdue?: boolean;
 }
 
 export default function FleetDashboard() {
@@ -19,12 +21,24 @@ export default function FleetDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/v1/ops/fleet/vehicles')
-      .then(res => res.json())
-      .then(data => {
-        if (data.data) setVehicles(data.data);
-        setLoading(false);
-      });
+    async function fetchFleet() {
+      const { data, error } = await supabase
+        .from('vehicles')
+        .select('*');
+
+      if (error) {
+        console.error('Error fetching fleet:', error);
+      } else if (data) {
+        const processed = data.map((v: Vehicle) => ({
+          ...v,
+          is_overdue: v.current_km > v.service_due_km
+        }));
+        setVehicles(processed);
+      }
+      setLoading(false);
+    }
+
+    fetchFleet();
   }, []);
 
   return (
@@ -40,6 +54,8 @@ export default function FleetDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {loading ? (
           <p className="text-slate-500">Loading Fleet...</p>
+        ) : vehicles.length === 0 ? (
+          <p className="text-slate-500">No vehicles found in database.</p>
         ) : vehicles.map((vehicle) => (
           <div key={vehicle.id} className={`p-6 rounded-lg border shadow-sm bg-white ${vehicle.is_overdue || vehicle.status === 'blocked' ? 'border-red-200' : 'border-slate-200'}`}>
             <div className="flex justify-between items-start mb-4">
@@ -70,7 +86,7 @@ export default function FleetDashboard() {
                 <div className="w-full bg-slate-100 rounded-full h-2">
                   <div
                     className={`h-2 rounded-full ${vehicle.is_overdue ? 'bg-red-500' : 'bg-blue-500'}`}
-                    style={{ width: `${Math.min((vehicle.current_km % 10000) / 100, 100)}%` }} // Mock progress
+                    style={{ width: `${Math.min((vehicle.current_km % 10000) / 100, 100)}%` }} // Visual approximation
                   ></div>
                 </div>
               </div>

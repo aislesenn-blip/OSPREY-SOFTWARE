@@ -1,30 +1,58 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { ShieldAlert, CheckCircle, Wrench, Calendar } from 'lucide-react';
+import { ShieldAlert, Wrench, Calendar } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
-interface ManifestItem {
+interface Booking {
+  reference_number: string;
+  start_date: string;
+  end_date: string;
+}
+
+interface Room {
+  name: string;
+  status: string;
+}
+
+interface Guest {
   id: string;
   full_name: string;
   allergies?: string;
-  room_name: string;
-  room_status: string;
-  booking_ref: string;
-  arrival: string;
-  departure: string;
+  bookings: Booking; // Relation
+  rooms: Room; // Relation
 }
 
 export default function CampManifest() {
-  const [guests, setGuests] = useState<ManifestItem[]>([]);
+  const [guests, setGuests] = useState<Guest[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/v1/ops/camp/manifest')
-      .then(res => res.json())
-      .then(data => {
-          if(data.data) setGuests(data.data);
-          setLoading(false);
-      });
+    async function fetchManifest() {
+      // Get guests with their booking and room details
+      const { data, error } = await supabase
+        .from('guests')
+        .select(`
+          *,
+          bookings (
+            reference_number,
+            start_date,
+            end_date
+          ),
+          rooms (
+            name,
+            status
+          )
+        `);
+
+      if (error) {
+        console.error('Error fetching manifest:', error);
+      } else if (data) {
+        setGuests(data as any[]);
+      }
+      setLoading(false);
+    }
+    fetchManifest();
   }, []);
 
   return (
@@ -59,19 +87,21 @@ export default function CampManifest() {
             ) : (
             guests.map((guest) => (
               <tr key={guest.id} className="hover:bg-slate-50">
-                <td className="px-6 py-4 font-bold text-slate-900">{guest.room_name}</td>
+                <td className="px-6 py-4 font-bold text-slate-900">{guest.rooms?.name || 'Unassigned'}</td>
                 <td className="px-6 py-4">
                   <div className="font-medium text-slate-900">{guest.full_name}</div>
-                  <div className="text-xs text-slate-500">Ref: {guest.booking_ref}</div>
+                  <div className="text-xs text-slate-500">Ref: {guest.bookings?.reference_number}</div>
                 </td>
                 <td className="px-6 py-4 text-slate-600">
                   <div className="flex items-center gap-1">
                     <Calendar size={14} />
-                    {new Date(guest.arrival).toLocaleDateString()} - {new Date(guest.departure).toLocaleDateString()}
+                    {guest.bookings ? (
+                      `${new Date(guest.bookings.start_date).toLocaleDateString()} - ${new Date(guest.bookings.end_date).toLocaleDateString()}`
+                    ) : '-'}
                   </div>
                 </td>
                 <td className="px-6 py-4">
-                  {guest.room_status === 'active' ? (
+                  {guest.rooms?.status === 'active' ? (
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
                       Active
                     </span>

@@ -1,18 +1,54 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
+
+// Define explicit types
+interface LedgerAccount {
+  name: string;
+}
+
+interface LedgerLine {
+  id: string;
+  debit: number;
+  credit: number;
+  ledger_accounts: LedgerAccount;
+}
+
+interface LedgerEntry {
+  id: string;
+  transaction_date: string;
+  description: string;
+  ledger_lines: LedgerLine[];
+}
 
 export default function FinancePage() {
-  const [entries, setEntries] = useState<any[]>([]);
+  const [entries, setEntries] = useState<LedgerEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/v1/ops/finance/ledger')
-      .then(res => res.json())
-      .then(data => {
-        setEntries(data.data || []);
-        setLoading(false);
-      });
+    async function fetchLedger() {
+      // Complex relational query
+      const { data, error } = await supabase
+        .from('ledger_entries')
+        .select(`
+          *,
+          ledger_lines (
+            *,
+            ledger_accounts (
+              name
+            )
+          )
+        `);
+
+      if (error) {
+        console.error('Error fetching ledger:', error);
+      } else if (data) {
+        setEntries(data as any[]); // Casting to any for complex join result flexibility or strict type mapped
+      }
+      setLoading(false);
+    }
+    fetchLedger();
   }, []);
 
   return (
@@ -38,20 +74,20 @@ export default function FinancePage() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {entries.map((entry) => (
-                entry.ledger_lines.map((line: any, idx: number) => (
-                  <tr key={`${entry.id}-${idx}`} className="hover:bg-slate-50">
+                entry.ledger_lines.map((line, idx) => (
+                  <tr key={`${entry.id}-${line.id || idx}`} className="hover:bg-slate-50">
                     <td className="px-6 py-4 text-slate-500">
                       {idx === 0 ? new Date(entry.transaction_date).toLocaleDateString() : ''}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="font-medium text-slate-900">{line.ledger_accounts.name}</div>
+                      <div className="font-medium text-slate-900">{line.ledger_accounts?.name || 'Unknown Account'}</div>
                       <div className="text-xs text-slate-500">{entry.description}</div>
                     </td>
                     <td className="px-6 py-4 text-right font-mono text-slate-700">
-                      {line.debit > 0 ? `$${line.debit.toFixed(2)}` : '-'}
+                      {line.debit > 0 ? `$${Number(line.debit).toFixed(2)}` : '-'}
                     </td>
                      <td className="px-6 py-4 text-right font-mono text-slate-700">
-                      {line.credit > 0 ? `$${line.credit.toFixed(2)}` : '-'}
+                      {line.credit > 0 ? `$${Number(line.credit).toFixed(2)}` : '-'}
                     </td>
                   </tr>
                 ))
