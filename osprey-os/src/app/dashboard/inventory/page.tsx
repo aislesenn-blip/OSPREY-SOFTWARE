@@ -30,7 +30,7 @@ export default function InventoryDashboard() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-slate-900">Inventory Command</h1>
-        <Link href="/inventory/receive" className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-md hover:bg-slate-800 transition">
+        <Link href="/dashboard/inventory/receive" className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-md hover:bg-slate-800 transition">
           <Plus size={16} />
           Receive Goods
         </Link>

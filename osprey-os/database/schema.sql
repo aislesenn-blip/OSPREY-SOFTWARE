@@ -13,7 +13,7 @@ create table profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   organization_id uuid references organizations(id),
   full_name text,
-  role text check (role in ('admin', 'camp_manager', 'inventory_manager', 'driver', 'mechanic', 'hr_manager', 'accountant', 'guard')),
+  role text check (role in ('admin', 'camp_manager', 'inventory_manager', 'storekeeper', 'driver', 'mechanic', 'hr_manager', 'accountant', 'guard')),
   created_at timestamp with time zone default now()
 );
 
@@ -251,17 +251,23 @@ returns uuid as $$
   select organization_id from profiles where id = auth.uid()
 $$ language sql security definer;
 
-create policy "Users can view data from their organization" on inventory_items
-  for all using (organization_id = get_auth_org_id());
-
-create policy "Users can view data from their organization" on inventory_locations
-  for all using (organization_id = get_auth_org_id());
-
--- ... (Repeat for all tables - simplified for this schema file to avoid 100 lines of policy)
--- In a real deployment script, I would loop this or write them out.
--- For the sake of the deliverable "SQL SCHEMA", I will write a few key ones and a note.
-
-create policy "Org isolation for vehicles" on vehicles for all using (organization_id = get_auth_org_id());
-create policy "Org isolation for guests" on guests for all using (organization_id = get_auth_org_id());
+create policy "Org isolation for profiles" on profiles for all using (organization_id = get_auth_org_id());
+create policy "Org isolation for inventory_locations" on inventory_locations for all using (organization_id = get_auth_org_id());
+create policy "Org isolation for inventory_items" on inventory_items for all using (organization_id = get_auth_org_id());
+create policy "Org isolation for inventory_stock" on inventory_stock for all using (organization_id = get_auth_org_id());
+create policy "Org isolation for inventory_transactions" on inventory_transactions for all using (organization_id = get_auth_org_id());
+create policy "Org isolation for camps" on camps for all using (organization_id = get_auth_org_id());
+create policy "Org isolation for rooms" on rooms for all using (organization_id = get_auth_org_id());
+create policy "Org isolation for maintenance_tickets" on maintenance_tickets for all using (organization_id = get_auth_org_id());
 create policy "Org isolation for bookings" on bookings for all using (organization_id = get_auth_org_id());
--- etc.
+create policy "Org isolation for guests" on guests for all using (organization_id = get_auth_org_id());
+create policy "Org isolation for vehicles" on vehicles for all using (organization_id = get_auth_org_id());
+create policy "Org isolation for vehicle_trips" on vehicle_trips for all using (organization_id = get_auth_org_id());
+create policy "Org isolation for fuel_logs" on fuel_logs for all using (organization_id = get_auth_org_id());
+create policy "Org isolation for asset_genealogy" on asset_genealogy for all using (organization_id = get_auth_org_id());
+create policy "Org isolation for staff" on staff for all using (organization_id = get_auth_org_id());
+create policy "Org isolation for staff_rota" on staff_rota for all using (organization_id = get_auth_org_id());
+create policy "Org isolation for ledger_accounts" on ledger_accounts for all using (organization_id = get_auth_org_id());
+create policy "Org isolation for ledger_entries" on ledger_entries for all using (organization_id = get_auth_org_id());
+create policy "Org isolation for ledger_lines" on ledger_lines for all using (entry_id in (select id from ledger_entries where organization_id = get_auth_org_id()));
+create policy "Org isolation for gate_passes" on gate_passes for all using (organization_id = get_auth_org_id());
