@@ -31,7 +31,7 @@ export default function FleetDashboard() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-slate-900">Fleet Management</h1>
-        <Link href="/fleet/fuel" className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-md hover:bg-slate-800 transition">
+        <Link href="/dashboard/fleet/fuel" className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-md hover:bg-slate-800 transition">
           <Fuel size={16} />
           Dispense Fuel
         </Link>

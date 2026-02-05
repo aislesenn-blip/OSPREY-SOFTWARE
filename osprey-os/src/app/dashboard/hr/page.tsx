@@ -28,7 +28,7 @@ export default function HRPage() {
         {/* RATION CARD */}
         <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-medium text-slate-500 mb-1">Today's Rations Required</h3>
+            <h3 className="text-sm font-medium text-slate-500 mb-1">Today&apos;s Rations Required</h3>
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-bold text-slate-900">{rationCount}</span>
               <span className="text-sm text-slate-500">Meals</span>

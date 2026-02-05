@@ -13,13 +13,13 @@ import {
 } from 'lucide-react';
 
 const menuItems = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Inventory', href: '/inventory', icon: Box },
-  { name: 'Camp Ops', href: '/camp', icon: Tent },
-  { name: 'Fleet', href: '/fleet', icon: Truck },
-  { name: 'HR & Staff', href: '/hr', icon: Users },
-  { name: 'Finance', href: '/finance', icon: DollarSign },
-  { name: 'Security', href: '/security', icon: ShieldCheck },
+  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Inventory', href: '/dashboard/inventory', icon: Box },
+  { name: 'Camp Ops', href: '/dashboard/camp', icon: Tent },
+  { name: 'Fleet', href: '/dashboard/fleet', icon: Truck },
+  { name: 'HR & Staff', href: '/dashboard/hr', icon: Users },
+  { name: 'Finance', href: '/dashboard/finance', icon: DollarSign },
+  { name: 'Security', href: '/dashboard/security', icon: ShieldCheck },
 ];
 
 export default function Sidebar() {
