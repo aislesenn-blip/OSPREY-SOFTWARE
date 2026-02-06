@@ -1,78 +1,120 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { InventoryItem } from '@/types/inventory';
-import Link from 'next/link';
-import { Package, Plus } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { InventoryItem } from "@/types";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Search, Package, ArrowDownToLine } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import Link from "next/link";
+import { formatCurrency } from "@/lib/utils";
 
-export default function InventoryDashboard() {
+export default function InventoryPage() {
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    async function fetchItems() {
-      const { data, error } = await supabase
-        .from('inventory_items')
-        .select('*');
-
-      if (error) {
-        console.error('Error fetching inventory:', error);
-      } else if (data) {
-        setItems(data as InventoryItem[]);
-      }
-      setLoading(false);
-    }
     fetchItems();
   }, []);
 
+  async function fetchItems() {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("inventory_items")
+      .select("*")
+      .order("name", { ascending: true });
+
+    if (data) setItems(data);
+    setLoading(false);
+  }
+
+  const filteredItems = items.filter(i =>
+    i.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (i.sku && i.sku.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-slate-900">Inventory Command</h1>
-        <Link href="/dashboard/inventory/receive" className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-md hover:bg-slate-800 transition">
-          <Plus size={16} />
-          Receive Goods
-        </Link>
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight text-[#0A192F]">Inventory</h2>
+          <p className="text-muted-foreground">Manage stock levels, items, and valuation.</p>
+        </div>
+        <div className="flex gap-2">
+          <Link href="/dashboard/inventory/receiving">
+             <Button variant="outline"><ArrowDownToLine className="mr-2 h-4 w-4" /> Receive Stock</Button>
+          </Link>
+          <Button className="bg-[#0A192F] hover:bg-[#1B4D3E]">
+            <Plus className="mr-2 h-4 w-4" /> New Item
+          </Button>
+        </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr>
-              <th className="px-6 py-4 font-medium text-slate-500">Item Name</th>
-              <th className="px-6 py-4 font-medium text-slate-500">Category</th>
-              <th className="px-6 py-4 font-medium text-slate-500">Unit</th>
-              <th className="px-6 py-4 font-medium text-slate-500">Min Stock</th>
-              <th className="px-6 py-4 font-medium text-slate-500">Status</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {loading ? (
-               <tr><td colSpan={5} className="px-6 py-4 text-center">Loading Inventory...</td></tr>
-            ) : items.length === 0 ? (
-               <tr><td colSpan={5} className="px-6 py-4 text-center text-slate-500">No items found.</td></tr>
-            ) : (
-              items.map((item) => (
-                <tr key={item.id} className="hover:bg-slate-50">
-                  <td className="px-6 py-4 font-medium text-slate-900 flex items-center gap-2">
-                    <Package size={16} className="text-slate-400" />
-                    {item.name}
-                  </td>
-                  <td className="px-6 py-4 text-slate-600 capitalize">{item.category}</td>
-                  <td className="px-6 py-4 text-slate-600">{item.unit}</td>
-                  <td className="px-6 py-4 text-slate-600">{item.minimum_stock}</td>
-                  <td className="px-6 py-4">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                      In Stock
-                    </span>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Stock List</CardTitle>
+            <div className="relative w-64">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search items..."
+                className="pl-8"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex justify-center p-8">Loading...</div>
+          ) : filteredItems.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+              <Package className="h-12 w-12 mb-4 opacity-20" />
+              <p>No inventory items found.</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>SKU</TableHead>
+                  <TableHead>Item Name</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead className="text-right">Stock</TableHead>
+                  <TableHead className="text-right">Unit Cost</TableHead>
+                  <TableHead className="text-right">Value</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredItems.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell className="font-mono text-xs">{item.sku || '-'}</TableCell>
+                    <TableCell className="font-medium">{item.name}</TableCell>
+                    <TableCell>{item.category || 'General'}</TableCell>
+                    <TableCell className="text-right font-bold">
+                      {item.current_stock} <span className="text-muted-foreground font-normal text-xs">{item.unit}</span>
+                    </TableCell>
+                    <TableCell className="text-right">{formatCurrency(item.cost_price)}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(item.cost_price * item.current_stock)}</TableCell>
+                    <TableCell>
+                      {item.current_stock <= item.min_stock_level ? (
+                        <Badge variant="destructive">Low Stock</Badge>
+                      ) : (
+                        <Badge variant="success">In Stock</Badge>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

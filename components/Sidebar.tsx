@@ -1,65 +1,85 @@
 "use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 import {
-  Box,
-  Tent,
+  LayoutDashboard,
   Truck,
+  Package,
   Users,
-  DollarSign,
-  ShieldCheck,
-  LayoutDashboard
-} from 'lucide-react';
+  CalendarDays,
+  Settings,
+  FileText,
+  LogOut,
+  Mountain
+} from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { useRouter } from "next/navigation";
 
-const menuItems = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Inventory', href: '/dashboard/inventory', icon: Box },
-  { name: 'Camp Ops', href: '/dashboard/camp', icon: Tent },
-  { name: 'Fleet', href: '/dashboard/fleet', icon: Truck },
-  { name: 'HR & Staff', href: '/dashboard/hr', icon: Users },
-  { name: 'Finance', href: '/dashboard/finance', icon: DollarSign },
-  { name: 'Security', href: '/dashboard/security', icon: ShieldCheck },
+const navItems = [
+  { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Fleet Control", href: "/dashboard/fleet", icon: Truck },
+  { name: "Inventory", href: "/dashboard/inventory", icon: Package },
+  { name: "Staff & HR", href: "/dashboard/hr", icon: Users },
+  { name: "Operations", href: "/dashboard/operations", icon: CalendarDays },
+  { name: "Reports", href: "/dashboard/reports", icon: FileText },
+  { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
-export default function Sidebar() {
+export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push("/");
+  };
 
   return (
-    <aside className="w-64 bg-slate-50 border-r border-slate-200 h-screen flex flex-col fixed left-0 top-0">
-      <div className="p-6 border-b border-slate-200">
-        <h1 className="text-xl font-bold tracking-tight text-slate-900">OSPREY <span className="text-slate-400 font-light">OS</span></h1>
+    <div className="flex h-screen w-64 flex-col bg-[#0A192F] text-white">
+      <div className="flex h-16 items-center px-6 border-b border-gray-800">
+        <Mountain className="h-6 w-6 text-[#E6DDC4] mr-2" />
+        <span className="text-lg font-bold tracking-tight text-[#E6DDC4]">OSPREY</span>
       </div>
-      <nav className="flex-1 p-4 space-y-1">
-        {menuItems.map((item) => {
-          const isActive = pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href));
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                isActive
-                  ? 'bg-slate-900 text-white'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-              }`}
-            >
-              <item.icon size={18} />
-              {item.name}
-            </Link>
-          );
-        })}
-      </nav>
-      <div className="p-4 border-t border-slate-200">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-600">
-            JD
-          </div>
-          <div className="text-xs">
-            <p className="font-medium text-slate-900">Juma Driver</p>
-            <p className="text-slate-500">Baobab Camps</p>
-          </div>
-        </div>
+
+      <div className="flex-1 overflow-y-auto py-4">
+        <nav className="space-y-1 px-2">
+          {navItems.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={cn(
+                  "group flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors",
+                  isActive
+                    ? "bg-[#1B4D3E] text-white"
+                    : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                )}
+              >
+                <item.icon
+                  className={cn(
+                    "mr-3 h-5 w-5 flex-shrink-0 transition-colors",
+                    isActive ? "text-white" : "text-gray-400 group-hover:text-white"
+                  )}
+                />
+                {item.name}
+              </Link>
+            );
+          })}
+        </nav>
       </div>
-    </aside>
+
+      <div className="p-4 border-t border-gray-800">
+        <button
+          onClick={handleSignOut}
+          className="flex w-full items-center px-4 py-2 text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-800 rounded-md transition-colors"
+        >
+          <LogOut className="mr-3 h-5 w-5" />
+          Sign Out
+        </button>
+      </div>
+    </div>
   );
 }

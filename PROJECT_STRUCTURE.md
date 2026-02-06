@@ -1,38 +1,71 @@
-# PROJECT STRUCTURE
+# OSPREY Project Structure
 
-## THE GOLDEN RULES (WARNING)
-1.  **CRITICAL:** `package.json` must ALWAYS be at the Root.
-2.  **CRITICAL:** `app/page.tsx` must be at `root/app/page.tsx`.
-3.  **DO NOT** nest this project inside `src/` or `osprey-os/` folders.
+This document outlines the architecture and file organization of the OSPREY Tourism ERP.
 
-## Visual Tree
+## Directory Structure
 
 ```
-.
-├── app
-│   ├── dashboard      # Protected Application Routes (Sidebar Layout)
-│   ├── api            # API Routes
-│   ├── layout.tsx     # Root Layout (html/body)
-│   ├── page.tsx       # Login Page (Landing)
-│   └── not-found.tsx  # 404 Handler
-├── components         # Shared React Components
-├── lib                # Utilities (Supabase client, Helpers)
-├── public             # Static Assets (Images, Icons)
-├── types              # TypeScript Interfaces
-├── database           # SQL Schema
-├── package.json       # Project Dependencies (ROOT LEVEL)
-├── next.config.js     # Next.js Config (ROOT LEVEL)
-├── tsconfig.json      # TypeScript Config (ROOT LEVEL)
-└── PROJECT_STRUCTURE.md
+/
+├── app/                    # Next.js App Router
+│   ├── api/                # API Routes (Admin actions)
+│   ├── auth/               # Auth callbacks
+│   ├── dashboard/          # Authenticated Application
+│   │   ├── fleet/          # Fleet Management Module
+│   │   ├── hr/             # HR & Staff Module
+│   │   ├── inventory/      # Inventory Module
+│   │   ├── operations/     # Operations Module
+│   │   └── layout.tsx      # Dashboard Sidebar & Layout
+│   ├── globals.css         # Global Styles & Tailwind Variables
+│   └── page.tsx            # Auth Entry Point (Login/Register)
+│
+├── components/             # React Components
+│   ├── ui/                 # Reusable UI Library (Button, Card, etc.)
+│   └── Sidebar.tsx         # Dashboard Navigation
+│
+├── database/               # Database Assets
+│   └── schema.sql          # Complete Supabase SQL Schema (Tables, RLS, Triggers)
+│
+├── lib/                    # Utilities & Configuration
+│   ├── supabase.ts         # Supabase Client (Public)
+│   ├── supabase-admin.ts   # Supabase Admin Client (Service Role)
+│   └── utils.ts            # Helper functions (cn, formatters)
+│
+├── types/                  # TypeScript Definitions
+│   └── index.ts            # Global Type Interfaces
+│
+├── next.config.js          # Next.js Config (Minimal)
+├── package.json            # Dependencies & Scripts
+└── tailwind.config.ts      # Tailwind Configuration
 ```
 
-## File Descriptions
+## Key Architectural Decisions
 
-*   **app/**: Contains the main application code (Next.js App Router).
-    *   **app/page.tsx**: The public Login page.
-    *   **app/dashboard/**: The authenticated area of the app. All routes here share the Dashboard Layout (Sidebar).
-*   **components/**: Reusable UI components (Buttons, Cards, Inputs).
-*   **lib/**: Backend logic and shared utilities.
-    *   `supabase.ts`: The Supabase client initialization.
-*   **public/**: Static files served directly (e.g., logos).
-*   **database/**: Contains `schema.sql` for setting up the Supabase database.
+1.  **Multi-Tenancy:**
+    *   Every database table includes `organization_id`.
+    *   Row Level Security (RLS) policies enforce data isolation.
+    *   Users are assigned to an Organization upon registration or invitation.
+
+2.  **Authentication:**
+    *   Powered by Supabase Auth.
+    *   `app/page.tsx` handles Sign Up (Company creation) and Login.
+    *   `app/api/admin/invite` allows Admins to invite users to their specific organization.
+
+3.  **Data Fetching:**
+    *   Primary fetching occurs client-side using the Supabase Client (`lib/supabase.ts`) in `useEffect` hooks for maximum responsiveness in the dashboard.
+    *   Server-side operations (like Invites) use `lib/supabase-admin.ts`.
+
+4.  **Styling:**
+    *   Tailwind CSS with a custom "Corporate Luxury" theme.
+    *   Colors: Deep Navy (`#0A192F`), Warm Sand (`#E6DDC4`), Forest Green (`#1B4D3E`).
+    *   UI Components are modular and built with `class-variance-authority` principles (via `cn` utility).
+
+## Deployment
+
+1.  **Database Setup:**
+    *   Run `database/schema.sql` in the Supabase SQL Editor.
+2.  **Environment Variables:**
+    *   Hardcoded in `lib/supabase.ts` for this build (as per instructions), but typically should be in `.env.local`.
+3.  **Build:**
+    *   `npm run build`
+4.  **Start:**
+    *   `npm start`
