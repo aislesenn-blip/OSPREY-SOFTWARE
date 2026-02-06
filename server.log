@@ -1,0 +1,17 @@
+
+> osprey@0.1.0 dev
+> next dev
+
+   ▲ Next.js 14.1.0
+   - Local:        http://localhost:3000
+
+ ✓ Ready in 1815ms
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 7.7s (502 modules)
+ ○ Compiling /not-found ...
+ ✓ Compiled /not-found in 1314ms (496 modules)
+ ○ Compiling /dashboard/finance/journals ...
+ ✓ Compiled /dashboard/finance/journals in 1195ms (582 modules)
+ ✓ Compiled /dashboard/budget in 284ms (596 modules)
+ ✓ Compiled /dashboard/hr/employees in 259ms (604 modules)
+ ✓ Compiled in 593ms (615 modules)
