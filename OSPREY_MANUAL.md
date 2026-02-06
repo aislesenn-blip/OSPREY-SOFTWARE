@@ -1,53 +1,62 @@
-# OSPREY MANUAL: The "Bible" of the System
+# OSPREY - Enterprise Tourism Operating System
+**Version 1.0.0**
 
-## 1. What is Osprey?
-OSPREY is the **Internal Operating System for High-End Safari Operations**. It is a multi-tenant SaaS ERP designed specifically for the unique logistical challenges of operating luxury safari camps in remote locations like Tanzania.
+## Introduction
 
-It replaces disjointed spreadsheets and paper trails with a unified digital command center.
+OSPREY is a high-end, multi-tenant ERP system designed specifically for safari and tourism companies in Tanzania. It combines fleet logistics, inventory control, HR, and operations into a single, cohesive platform.
 
-### Core Logic
-*   **Single Truth:** All data (Inventory, Fleet, HR, Guests) lives in one cloud database.
-*   **Offline-First Thinking:** Designed to be robust even with intermittent connectivity (though primarily cloud-based).
-*   **Strict Hierarchy:** Information flows from Camps -> HQ -> Accounts.
+## System Access
 
-## 2. The Architecture & Flow
+### Registration (New Company)
+1.  Navigate to the landing page.
+2.  Select **"Register Company"**.
+3.  Enter your Organization Name, Full Name, Email, and Password.
+4.  This creates a new secure workspace and assigns you as the Admin.
 
-### Connectivity
-*   **Supabase (PostgreSQL)** is the backend brain.
-*   **Next.js (App Router)** is the frontend interface.
-*   **Vercel** is the deployment infrastructure.
+### Login (Existing Users)
+1.  Navigate to the landing page.
+2.  Enter Email and Password.
+3.  Click **"Sign In"**.
 
-### Organization Onboarding (The "Genesis")
-1.  **Registration:** A Company (Organization) is created in the database manually or via a Super-Admin portal.
-2.  **Admin Creation:** The first user (Admin) is linked to this Organization.
-3.  **Expansion:** The Admin logs in and creates other users (Camp Managers, Drivers, etc.) via the HR/Staff module.
+### User Management
+*   **Inviting Users:** Admins can invite new staff via the **HR Module** (`/dashboard/hr`).
+*   **Roles:** Admin, Manager, Driver, Mechanic, Storekeeper, Staff.
 
-### Multi-Tenancy
-*   **Rule #1:** Every single row in the database has an `organization_id`.
-*   **Data Isolation:** Users can ONLY see data belonging to their `organization_id`.
-*   **RLS (Row Level Security):** The database enforces this isolation at the lowest level.
+## Modules
 
-## 3. The User Roles
+### 1. Dashboard Overview
+Provides a high-level view of the company's health:
+*   Active Fleet count.
+*   Staff on duty.
+*   Low stock alerts.
+*   Recent system activity.
 
-Who uses Osprey?
+### 2. Fleet Management (`/dashboard/fleet`)
+Manage the entire vehicle lifecycle.
+*   **Vehicle List:** View all vehicles, status, and mileage.
+*   **Vehicle Details:** Click a vehicle to see history, logs, and maintenance.
+*   **Trips:** Log trips to track vehicle usage and driver assignments.
+*   **Fuel:** Track fuel consumption and cost per km.
 
-| Role | Responsibility | Access Level |
-| :--- | :--- | :--- |
-| **Admin** | The Owner/General Manager. | **God Mode.** Can see all camps, finances, and settings. |
-| **Camp Manager** | Runs a specific Camp (e.g., Baobab Camp). | specific Camp Inventory, Guest Lists, Maintenance. |
-| **Storekeeper** | Manages the Central Store or Camp Store. | Inventory (Receive, Issue, Stocktake). Cannot see Finance/HR. |
-| **Driver** | Safari Guides & Logistics Drivers. | Vehicle Checks, Fuel Logs, Trip Logs. |
-| **Mechanic** | Fleet Maintenance. | Service Logs, Spare Parts usage. |
-| **Accountant** | HQ Finance Team. | Ledger, Reports, Expenses, Revenue. |
-| **Guard/Gate** | Security Post. | Gate Passes, Vehicle In/Out logging. |
+### 3. Inventory Control (`/dashboard/inventory`)
+Track stock across Main Store, Camp Stores, and Departments.
+*   **Stock List:** View real-time stock levels and valuation.
+*   **Blind Receiving:** Securely receive stock without seeing expected quantities to ensure accuracy.
+*   **Valuation:** Automatic calculation of stock value based on FIFO/Average Cost.
 
-## 4. The Login Logic
+### 4. Operations (`/dashboard/operations`)
+Live view of company movements.
+*   **Manifests:** Track guest arrivals and departures.
+*   **Active Trips:** Monitor vehicles currently on safari.
 
-*   **No Self-Signup:** Public users cannot just "sign up". Access is granted by the Organization Admin.
-*   **Credentials:** Users log in with **Email** and **Password**.
-*   **Authentication Flow:**
-    1.  User enters credentials on `/` (Login Page).
-    2.  Supabase Auth validates the user.
-    3.  System checks the `profiles` table to get the User's `role` and `organization_id`.
-    4.  User is redirected to `/dashboard`.
-    5.  **404 Protection:** If a user tries to access a restricted or non-existent page, they are safely redirected to `/dashboard`.
+### 5. HR & Payroll (`/dashboard/hr`)
+Manage the workforce.
+*   **Staff Directory:** Central database of all employees.
+*   **User Access:** Invite users to the system with specific roles.
+
+## Technical Support
+
+For system issues, please contact the IT Department.
+
+---
+*Built with Next.js, Supabase, and Tailwind CSS.*

@@ -1,116 +1,116 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { Truck, Fuel, AlertTriangle, Settings } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { Vehicle } from "@/types";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Search, Truck } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import Link from "next/link";
 
-interface Vehicle {
-  id: string;
-  plate_number: string;
-  model: string;
-  current_km: number;
-  service_due_km: number;
-  status: string;
-  // Computed client-side
-  is_overdue?: boolean;
-}
-
-export default function FleetDashboard() {
+export default function FleetPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    async function fetchFleet() {
-      const { data, error } = await supabase
-        .from('vehicles')
-        .select('*');
-
-      if (error) {
-        console.error('Error fetching fleet:', error);
-      } else if (data) {
-        const processed = data.map((v: Vehicle) => ({
-          ...v,
-          is_overdue: v.current_km > v.service_due_km
-        }));
-        setVehicles(processed);
-      }
-      setLoading(false);
-    }
-
-    fetchFleet();
+    fetchVehicles();
   }, []);
 
+  async function fetchVehicles() {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("vehicles")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (data) setVehicles(data);
+    setLoading(false);
+  }
+
+  const filteredVehicles = vehicles.filter(v =>
+    v.registration_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    v.make.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    v.model.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-slate-900">Fleet Management</h1>
-        <Link href="/dashboard/fleet/fuel" className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-md hover:bg-slate-800 transition">
-          <Fuel size={16} />
-          Dispense Fuel
-        </Link>
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight text-[#0A192F]">Fleet Control</h2>
+          <p className="text-muted-foreground">Manage your vehicles and maintenance schedules.</p>
+        </div>
+        <Button className="bg-[#0A192F] hover:bg-[#1B4D3E]">
+          <Plus className="mr-2 h-4 w-4" /> Add Vehicle
+        </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {loading ? (
-          <p className="text-slate-500">Loading Fleet...</p>
-        ) : vehicles.length === 0 ? (
-          <p className="text-slate-500">No vehicles found in database.</p>
-        ) : vehicles.map((vehicle) => (
-          <div key={vehicle.id} className={`p-6 rounded-lg border shadow-sm bg-white ${vehicle.is_overdue || vehicle.status === 'blocked' ? 'border-red-200' : 'border-slate-200'}`}>
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-md ${vehicle.is_overdue ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-600'}`}>
-                  <Truck size={24} />
-                </div>
-                <div>
-                  <h3 className="font-bold text-slate-900">{vehicle.plate_number}</h3>
-                  <p className="text-sm text-slate-500">{vehicle.model}</p>
-                </div>
-              </div>
-              <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${
-                vehicle.is_overdue || vehicle.status === 'blocked'
-                  ? 'bg-red-100 text-red-700'
-                  : 'bg-emerald-100 text-emerald-700'
-              }`}>
-                {vehicle.is_overdue ? 'BLOCKED' : vehicle.status}
-              </span>
-            </div>
-
-            <div className="space-y-3">
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-slate-500">Odometer</span>
-                  <span className="font-medium text-slate-900">{vehicle.current_km.toLocaleString()} km</span>
-                </div>
-                <div className="w-full bg-slate-100 rounded-full h-2">
-                  <div
-                    className={`h-2 rounded-full ${vehicle.is_overdue ? 'bg-red-500' : 'bg-blue-500'}`}
-                    style={{ width: `${Math.min((vehicle.current_km % 10000) / 100, 100)}%` }} // Visual approximation
-                  ></div>
-                </div>
-              </div>
-
-              <div className="flex justify-between items-center text-xs p-2 bg-slate-50 rounded border border-slate-100">
-                <div className="flex items-center gap-1 text-slate-600">
-                   <Settings size={12} />
-                   <span>Service Due</span>
-                </div>
-                <span className={`font-medium ${vehicle.is_overdue ? 'text-red-600' : 'text-slate-900'}`}>
-                  {vehicle.service_due_km.toLocaleString()} km
-                </span>
-              </div>
-
-              {vehicle.is_overdue && (
-                <div className="flex items-start gap-2 text-xs text-red-600 bg-red-50 p-2 rounded">
-                  <AlertTriangle size={14} className="mt-0.5" />
-                  <span>Service Limit Exceeded. Vehicle is strictly grounded.</span>
-                </div>
-              )}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Vehicles</CardTitle>
+            <div className="relative w-64">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search fleet..."
+                className="pl-8"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
           </div>
-        ))}
-      </div>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex justify-center p-8">Loading...</div>
+          ) : filteredVehicles.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+              <Truck className="h-12 w-12 mb-4 opacity-20" />
+              <p>No vehicles found.</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Registration</TableHead>
+                  <TableHead>Make & Model</TableHead>
+                  <TableHead>Year</TableHead>
+                  <TableHead>Odometer</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredVehicles.map((vehicle) => (
+                  <TableRow key={vehicle.id}>
+                    <TableCell className="font-medium">{vehicle.registration_number}</TableCell>
+                    <TableCell>{vehicle.make} {vehicle.model}</TableCell>
+                    <TableCell>{vehicle.year}</TableCell>
+                    <TableCell>{vehicle.current_odometer.toLocaleString()} km</TableCell>
+                    <TableCell>
+                      <Badge variant={
+                        vehicle.status === 'active' ? 'success' :
+                        vehicle.status === 'maintenance' ? 'warning' : 'destructive'
+                      }>
+                        {vehicle.status.toUpperCase()}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Link href={`/dashboard/fleet/${vehicle.id}`}>
+                        <Button variant="outline" size="sm">View</Button>
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

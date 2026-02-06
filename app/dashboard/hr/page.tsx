@@ -1,28 +1,25 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { Users, Utensils, UserPlus, X } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
-
-// Define explicit types
-interface StaffMember {
-  id: string;
-  full_name: string;
-  role: string;
-  is_active: boolean;
-  organization_id: string;
-}
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { Staff } from "@/types";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Plus, UserPlus, Mail } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { formatCurrency } from "@/lib/utils";
 
 export default function HRPage() {
-  const [staff, setStaff] = useState<StaffMember[]>([]);
+  const [staff, setStaff] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showInviteModal, setShowInviteModal] = useState(false);
-  const [orgId, setOrgId] = useState<string | null>(null);
 
-  // Invite Form State
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteName, setInviteName] = useState('');
-  const [inviteRole, setInviteRole] = useState('driver');
+  // Invite State
+  const [showInvite, setShowInvite] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteName, setInviteName] = useState("");
+  const [inviteRole, setInviteRole] = useState("staff");
   const [inviteLoading, setInviteLoading] = useState(false);
 
   useEffect(() => {
@@ -30,197 +27,151 @@ export default function HRPage() {
   }, []);
 
   async function fetchStaff() {
-    const { data: { user } } = await supabase.auth.getUser();
-
-    // Get user profile to know org_id
-    if (user) {
-      const { data: profile } = await supabase.from('profiles').select('organization_id').eq('id', user.id).single();
-      if (profile) setOrgId(profile.organization_id);
-    }
-
+    setLoading(true);
+    // Fetch from 'profiles' or 'staff' table?
+    // Schema has 'profiles' (users) and 'staff' (HR records).
+    // Ideally they are linked. For now I'll fetch 'profiles' as the user list.
     const { data, error } = await supabase
-      .from('profiles')
-      .select('*');
+      .from("profiles")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error('Error fetching staff:', error);
-    } else if (data) {
-      setStaff(data as any[]);
-    }
+    if (data) setStaff(data as any); // Type cast for now
     setLoading(false);
   }
 
-  const handleInvite = async (e: React.FormEvent) => {
+  async function handleInvite(e: React.FormEvent) {
     e.preventDefault();
-    if (!orgId) return;
-
     setInviteLoading(true);
+
     try {
       const res = await fetch('/api/admin/invite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: inviteEmail,
-          full_name: inviteName,
-          role: inviteRole,
-          organization_id: orgId
+            email: inviteEmail,
+            fullName: inviteName,
+            role: inviteRole
         })
       });
 
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
 
-      // Success
-      setShowInviteModal(false);
-      setInviteEmail('');
-      setInviteName('');
-      alert('Invitation sent successfully!');
-      fetchStaff(); // Refresh list
+      alert("Invitation sent successfully!");
+      setShowInvite(false);
+      setInviteEmail("");
+      setInviteName("");
     } catch (err: any) {
-      alert(err.message);
+      alert("Error sending invite: " + err.message);
     } finally {
       setInviteLoading(false);
     }
-  };
-
-  // Compute stats dynamically
-  const activeStaffCount = staff.length; // Simplified for profiles
-  const rationCount = activeStaffCount * 3;
-  const unitCost = 4.50;
+  }
 
   return (
-    <div className="space-y-6 relative">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-slate-900">HR & Staff Rota</h1>
-        <button
-          onClick={() => setShowInviteModal(true)}
-          className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-md hover:bg-slate-800 transition"
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight text-[#0A192F]">Staff & HR</h2>
+          <p className="text-muted-foreground">Manage employees and system users.</p>
+        </div>
+        <Button
+            className="bg-[#0A192F] hover:bg-[#1B4D3E]"
+            onClick={() => setShowInvite(!showInvite)}
         >
-          <UserPlus size={16} />
-          Add Staff
-        </button>
+          <UserPlus className="mr-2 h-4 w-4" /> Invite User
+        </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* RATION CARD */}
-        <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-medium text-slate-500 mb-1">Today&apos;s Rations Required</h3>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-slate-900">{rationCount}</span>
-              <span className="text-sm text-slate-500">Meals</span>
-            </div>
-            <p className="text-xs text-slate-400 mt-2">Based on Active Staff Count ({activeStaffCount})</p>
-          </div>
-          <div className="h-12 w-12 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center">
-            <Utensils size={24} />
-          </div>
-        </div>
-
-         <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-medium text-slate-500 mb-1">Estimated Daily Cost</h3>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-slate-900">${(rationCount * unitCost).toFixed(2)}</span>
-            </div>
-             <p className="text-xs text-slate-400 mt-2">@ ${unitCost.toFixed(2)} / meal</p>
-          </div>
-           <div className="h-12 w-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center">
-            <Users size={24} />
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr>
-              <th className="px-6 py-4 font-medium text-slate-500">Name</th>
-              <th className="px-6 py-4 font-medium text-slate-500">Role</th>
-              <th className="px-6 py-4 font-medium text-slate-500">Status</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {loading ? (
-               <tr><td colSpan={3} className="px-6 py-4 text-center">Loading Staff...</td></tr>
-            ) : staff.length === 0 ? (
-               <tr><td colSpan={3} className="px-6 py-4 text-center text-slate-500">No staff found.</td></tr>
-            ) : (
-              staff.map((s) => (
-                <tr key={s.id}>
-                  <td className="px-6 py-4 font-medium text-slate-900">{s.full_name}</td>
-                  <td className="px-6 py-4 text-slate-600 capitalize">{s.role}</td>
-                  <td className="px-6 py-4">
-                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      Active
-                    </span>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* INVITE MODAL */}
-      {showInviteModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-md overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
-              <h3 className="font-bold text-lg">Add New Staff</h3>
-              <button onClick={() => setShowInviteModal(false)} className="text-slate-500 hover:text-slate-900">
-                <X size={20} />
-              </button>
-            </div>
-            <form onSubmit={handleInvite} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
-                <input
-                  required
-                  type="text"
-                  value={inviteName}
-                  onChange={e => setInviteName(e.target.value)}
-                  className="w-full border border-slate-300 rounded px-3 py-2 focus:ring-2 focus:ring-slate-900 outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
-                <input
-                  required
-                  type="email"
-                  value={inviteEmail}
-                  onChange={e => setInviteEmail(e.target.value)}
-                  className="w-full border border-slate-300 rounded px-3 py-2 focus:ring-2 focus:ring-slate-900 outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Role</label>
-                <select
-                  value={inviteRole}
-                  onChange={e => setInviteRole(e.target.value)}
-                  className="w-full border border-slate-300 rounded px-3 py-2 focus:ring-2 focus:ring-slate-900 outline-none"
-                >
-                  <option value="driver">Driver</option>
-                  <option value="mechanic">Mechanic</option>
-                  <option value="camp_manager">Camp Manager</option>
-                  <option value="storekeeper">Storekeeper</option>
-                  <option value="accountant">Accountant</option>
-                  <option value="hr_manager">HR Manager</option>
-                </select>
-              </div>
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  disabled={inviteLoading}
-                  className="w-full bg-slate-900 text-white py-2 rounded hover:bg-slate-800 disabled:opacity-50"
-                >
-                  {inviteLoading ? 'Sending Invite...' : 'Send Invitation'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+      {showInvite && (
+        <Card className="bg-slate-50 border-dashed border-2 border-slate-300">
+            <CardHeader>
+                <CardTitle className="text-sm">Invite New Team Member</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <form onSubmit={handleInvite} className="flex gap-4 items-end">
+                    <div className="space-y-2 flex-1">
+                        <label className="text-xs font-medium">Full Name</label>
+                        <Input
+                            value={inviteName}
+                            onChange={e => setInviteName(e.target.value)}
+                            placeholder="Jane Doe"
+                            required
+                        />
+                    </div>
+                    <div className="space-y-2 flex-1">
+                        <label className="text-xs font-medium">Email Address</label>
+                        <Input
+                            type="email"
+                            value={inviteEmail}
+                            onChange={e => setInviteEmail(e.target.value)}
+                            placeholder="jane@company.com"
+                            required
+                        />
+                    </div>
+                    <div className="space-y-2 w-40">
+                        <label className="text-xs font-medium">Role</label>
+                        <select
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                            value={inviteRole}
+                            onChange={e => setInviteRole(e.target.value)}
+                        >
+                            <option value="staff">Staff</option>
+                            <option value="driver">Driver</option>
+                            <option value="mechanic">Mechanic</option>
+                            <option value="manager">Manager</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <Button type="submit" disabled={inviteLoading}>
+                        {inviteLoading ? "Sending..." : "Send Invite"}
+                    </Button>
+                </form>
+            </CardContent>
+        </Card>
       )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Team Members</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex justify-center p-8">Loading...</div>
+          ) : staff.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+              <Users className="h-12 w-12 mb-4 opacity-20" />
+              <p>No staff members found.</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {staff.map((member) => (
+                  <TableRow key={member.id}>
+                    <TableCell className="font-medium">{member.full_name}</TableCell>
+                    <TableCell>{member.email}</TableCell>
+                    <TableCell className="capitalize">{member.role}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
+                        Active
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
