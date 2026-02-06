@@ -1,62 +1,58 @@
-# OSPREY - Enterprise Tourism Operating System
-**Version 1.0.0**
+# OSPREY User Manual
 
-## Introduction
+Welcome to OSPREY, the universal operating system for your organization. This platform unifies your internal operations into a single, high-trust interface.
 
-OSPREY is a high-end, multi-tenant ERP system designed specifically for safari and tourism companies in Tanzania. It combines fleet logistics, inventory control, HR, and operations into a single, cohesive platform.
+## 1. Getting Started
 
-## System Access
+### Registration & Onboarding
+1.  **Sign Up:** Create a new workspace for your company.
+2.  **Industry Selection:** Choose your industry (e.g., Construction, Retail, Tourism). OSPREY will automatically configure terminology (e.g., "Sites" vs "Branches").
+3.  **Invite Team:** Go to **HR** to invite staff members with specific roles.
 
-### Registration (New Company)
-1.  Navigate to the landing page.
-2.  Select **"Register Company"**.
-3.  Enter your Organization Name, Full Name, Email, and Password.
-4.  This creates a new secure workspace and assigns you as the Admin.
+## 2. Core Modules
 
-### Login (Existing Users)
-1.  Navigate to the landing page.
-2.  Enter Email and Password.
-3.  Click **"Sign In"**.
+### Dashboard
+Your command center. View live statistics on Employees, Stock Levels, and Active Assets. The terminology adapts to your industry configuration.
 
-### User Management
-*   **Inviting Users:** Admins can invite new staff via the **HR Module** (`/dashboard/hr`).
-*   **Roles:** Admin, Manager, Driver, Mechanic, Storekeeper, Staff.
+### Inventory System
+Manage your material or product flow.
+*   **Items:** Create standard items with Cost and Selling Prices.
+*   **Transfers:** Move stock between Locations (e.g., Main Store to Site A).
+*   **Valuation:** Real-time calculation of stock value.
 
-## Modules
+### HR & Payroll
+Manage your workforce.
+*   **Directory:** View all staff and their assigned location.
+*   **Payroll:** The system automatically estimates Net Pay based on Basic Salary, standard Tax (10%), and Deductions (5%).
 
-### 1. Dashboard Overview
-Provides a high-level view of the company's health:
-*   Active Fleet count.
-*   Staff on duty.
-*   Low stock alerts.
-*   Recent system activity.
+### Accounting (Finance)
+Your financial ledger.
+*   **Ledger:** View double-entry records of system transactions.
+*   **Accounts:** Manage your Chart of Accounts.
 
-### 2. Fleet Management (`/dashboard/fleet`)
-Manage the entire vehicle lifecycle.
-*   **Vehicle List:** View all vehicles, status, and mileage.
-*   **Vehicle Details:** Click a vehicle to see history, logs, and maintenance.
-*   **Trips:** Log trips to track vehicle usage and driver assignments.
-*   **Fuel:** Track fuel consumption and cost per km.
+### Assets & Fleet
+Track physical capital.
+*   **Assets:** General equipment, machinery, and furniture.
+*   **Fleet:** Specialized module for vehicles, including mileage logs and maintenance schedules.
 
-### 3. Inventory Control (`/dashboard/inventory`)
-Track stock across Main Store, Camp Stores, and Departments.
-*   **Stock List:** View real-time stock levels and valuation.
-*   **Blind Receiving:** Securely receive stock without seeing expected quantities to ensure accuracy.
-*   **Valuation:** Automatic calculation of stock value based on FIFO/Average Cost.
+### Communication
+*   **Announcements:** Broadcast important messages to the entire company.
+*   **Channels:** Department-specific chat streams.
 
-### 4. Operations (`/dashboard/operations`)
-Live view of company movements.
-*   **Manifests:** Track guest arrivals and departures.
-*   **Active Trips:** Monitor vehicles currently on safari.
+### Tasks
+*   **Workflows:** Create tasks, assign them to staff, and track progress (ToDo -> In Progress -> Done).
 
-### 5. HR & Payroll (`/dashboard/hr`)
-Manage the workforce.
-*   **Staff Directory:** Central database of all employees.
-*   **User Access:** Invite users to the system with specific roles.
+### Forms & Approvals
+*   **Requests:** Submit Leave, Fuel, or Purchase requests.
+*   **Approvals:** Managers can Approve or Reject requests in real-time.
 
-## Technical Support
+## 3. Settings & Configuration
 
-For system issues, please contact the IT Department.
+Navigate to **Settings** to:
+*   Add new **Locations** (Branches, Sites, Camps).
+*   Configure system preferences.
+*   View your Industry settings.
 
----
-*Built with Next.js, Supabase, and Tailwind CSS.*
+## 4. Support
+
+For technical assistance, please contact your System Administrator or refer to the Developer Documentation for API integrations.

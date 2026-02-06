@@ -1,71 +1,73 @@
-# OSPREY Project Structure
+# OSPREY - Universal Enterprise Operating System
 
-This document outlines the architecture and file organization of the OSPREY Tourism ERP.
+OSPREY is a production-grade, industry-agnostic ERP designed to run the internal operations of any organization (Tourism, Construction, Retail, NGOs, etc.).
 
-## Directory Structure
+## Project Structure
 
 ```
 /
-├── app/                    # Next.js App Router
-│   ├── api/                # API Routes (Admin actions)
-│   ├── auth/               # Auth callbacks
-│   ├── dashboard/          # Authenticated Application
-│   │   ├── fleet/          # Fleet Management Module
-│   │   ├── hr/             # HR & Staff Module
-│   │   ├── inventory/      # Inventory Module
-│   │   ├── operations/     # Operations Module
-│   │   └── layout.tsx      # Dashboard Sidebar & Layout
-│   ├── globals.css         # Global Styles & Tailwind Variables
-│   └── page.tsx            # Auth Entry Point (Login/Register)
+├── app/                        # Next.js App Router (Frontend)
+│   ├── api/                    # API Routes (External Integrations)
+│   │   ├── inventory/          # Inventory API
+│   │   └── admin/              # Admin/Invite API
+│   ├── auth/                   # Authentication Pages & Callbacks
+│   ├── dashboard/              # Protected Application Area
+│   │   ├── assets/             # Asset Management (Equipment/Machinery)
+│   │   ├── communication/      # Internal Chat & Announcements
+│   │   ├── finance/            # Accounting & Ledger
+│   │   ├── fleet/              # Fleet Management (Vehicles)
+│   │   ├── forms/              # Custom Forms & Approvals
+│   │   ├── hr/                 # HR & Payroll Engine
+│   │   ├── inventory/          # Inventory & Stock Control
+│   │   ├── operations/         # Daily Operations (Trips/Manifests)
+│   │   ├── reports/            # BI & Reporting Engine
+│   │   ├── settings/           # Organization Configuration
+│   │   ├── tasks/              # Project & Task Management
+│   │   └── page.tsx            # Dashboard Home (Dynamic Stats)
+│   ├── onboarding/             # Industry Selection Flow
+│   ├── globals.css             # Tailwind Global Styles
+│   ├── layout.tsx              # Root Layout
+│   └── page.tsx                # Landing / Login Page
 │
-├── components/             # React Components
-│   ├── ui/                 # Reusable UI Library (Button, Card, etc.)
-│   └── Sidebar.tsx         # Dashboard Navigation
+├── components/                 # React UI Components
+│   ├── ui/                     # Shadcn-like Primitives (Cards, Buttons, Inputs)
+│   └── Sidebar.tsx             # Main Navigation
 │
-├── database/               # Database Assets
-│   └── schema.sql          # Complete Supabase SQL Schema (Tables, RLS, Triggers)
+├── database/                   # Database Assets
+│   └── schema.sql              # Universal PostgreSQL Schema (Tables, RLS, Triggers)
 │
-├── lib/                    # Utilities & Configuration
-│   ├── supabase.ts         # Supabase Client (Public)
-│   ├── supabase-admin.ts   # Supabase Admin Client (Service Role)
-│   └── utils.ts            # Helper functions (cn, formatters)
+├── lib/                        # Core Logic & Utilities
+│   ├── actions.ts              # Server Actions (Mutations)
+│   ├── supabase.ts             # Supabase Client (Data Fetching)
+│   ├── supabase-admin.ts       # Admin Client (Service Role)
+│   └── utils.ts                # Helpers (Formatting, Class Merging)
 │
-├── types/                  # TypeScript Definitions
-│   └── index.ts            # Global Type Interfaces
-│
-├── next.config.js          # Next.js Config (Minimal)
-├── package.json            # Dependencies & Scripts
-└── tailwind.config.ts      # Tailwind Configuration
+└── types/                      # TypeScript Definitions
+    └── index.ts                # Global Types (Employee, Item, Transaction)
 ```
 
-## Key Architectural Decisions
+## Core Modules
 
-1.  **Multi-Tenancy:**
-    *   Every database table includes `organization_id`.
-    *   Row Level Security (RLS) policies enforce data isolation.
-    *   Users are assigned to an Organization upon registration or invitation.
+1.  **Organization Structure:** Dynamic configuration of Branches, Departments, and Roles via `app/dashboard/settings`.
+2.  **Communication:** Internal announcements and messaging (`app/dashboard/communication`).
+3.  **Task Management:** Workflows and assignments (`app/dashboard/tasks`).
+4.  **HR & Payroll:** Employee records, contracts, and net pay calculation (`app/dashboard/hr`).
+5.  **Accounting:** Double-entry ledger and financial summaries (`app/dashboard/finance`).
+6.  **Inventory:** Universal stock management with multi-location transfers (`app/dashboard/inventory`).
+7.  **Assets:** Lifecycle tracking for all company equipment (`app/dashboard/assets`).
+8.  **Fleet:** specialized tracking for vehicles and trips (`app/dashboard/fleet`).
+9.  **Forms:** Custom request forms with approval workflows (`app/dashboard/forms`).
+10. **Reporting:** Cross-module business intelligence (`app/dashboard/reports`).
 
-2.  **Authentication:**
-    *   Powered by Supabase Auth.
-    *   `app/page.tsx` handles Sign Up (Company creation) and Login.
-    *   `app/api/admin/invite` allows Admins to invite users to their specific organization.
+## Tech Stack
 
-3.  **Data Fetching:**
-    *   Primary fetching occurs client-side using the Supabase Client (`lib/supabase.ts`) in `useEffect` hooks for maximum responsiveness in the dashboard.
-    *   Server-side operations (like Invites) use `lib/supabase-admin.ts`.
+*   **Frontend:** Next.js 14 (App Router), TypeScript, Tailwind CSS.
+*   **Backend:** Supabase (PostgreSQL 15), Server Actions.
+*   **Auth:** Supabase Auth (RLS enforced).
+*   **Infrastructure:** Vercel (Edge Network).
 
-4.  **Styling:**
-    *   Tailwind CSS with a custom "Corporate Luxury" theme.
-    *   Colors: Deep Navy (`#0A192F`), Warm Sand (`#E6DDC4`), Forest Green (`#1B4D3E`).
-    *   UI Components are modular and built with `class-variance-authority` principles (via `cn` utility).
+## Security Model
 
-## Deployment
-
-1.  **Database Setup:**
-    *   Run `database/schema.sql` in the Supabase SQL Editor.
-2.  **Environment Variables:**
-    *   Hardcoded in `lib/supabase.ts` for this build (as per instructions), but typically should be in `.env.local`.
-3.  **Build:**
-    *   `npm run build`
-4.  **Start:**
-    *   `npm start`
+*   **Multi-Tenancy:** Every table has `organization_id`.
+*   **RLS:** Row Level Security policies enforce isolation.
+*   **Audit:** `audit_logs` table captures every INSERT/UPDATE/DELETE with forensic JSON diffs.
