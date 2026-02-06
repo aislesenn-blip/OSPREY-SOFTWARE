@@ -51,7 +51,7 @@ export default function AuthPage() {
         // Auto login might not happen if email confirmation is required, but let's assume it works or prompts check email
         // For development/demo, usually email confirmation is off or we handle it.
         // If "Implicit" flow or confirmation disabled, it logs in.
-        router.push("/dashboard");
+        router.push("/onboarding");
       }
     } catch (err: any) {
       setError(err.message);

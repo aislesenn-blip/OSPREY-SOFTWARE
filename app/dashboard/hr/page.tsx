@@ -2,167 +2,107 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Staff } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, UserPlus, Mail, Users } from "lucide-react";
+import { UserPlus, Users, MapPin, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { formatCurrency } from "@/lib/utils";
+import { createEmployeeAction } from "@/lib/actions";
 
 export default function HRPage() {
-  const [staff, setStaff] = useState<Staff[]>([]);
+  const [employees, setEmployees] = useState<any[]>([]);
+  const [locations, setLocations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Invite State
-  const [showInvite, setShowInvite] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteName, setInviteName] = useState("");
-  const [inviteRole, setInviteRole] = useState("staff");
-  const [inviteLoading, setInviteLoading] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => {
-    fetchStaff();
+    fetchData();
   }, []);
 
-  async function fetchStaff() {
+  async function fetchData() {
     setLoading(true);
-    // Fetch from 'profiles' or 'staff' table?
-    // Schema has 'profiles' (users) and 'staff' (HR records).
-    // Ideally they are linked. For now I'll fetch 'profiles' as the user list.
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .order("created_at", { ascending: false });
+    // Fetch Employees with Location
+    // Note: Supabase join syntax
+    const { data: empData } = await supabase
+      .from("employees")
+      .select("*, location:department_id(name)")
+      .order("last_name");
 
-    if (data) setStaff(data as any); // Type cast for now
+    const { data: locData } = await supabase.from("locations").select("*");
+
+    if (empData) setEmployees(empData);
+    if (locData) setLocations(locData);
     setLoading(false);
   }
 
-  async function handleInvite(e: React.FormEvent) {
-    e.preventDefault();
-    setInviteLoading(true);
-
-    try {
-      const res = await fetch('/api/admin/invite', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            email: inviteEmail,
-            fullName: inviteName,
-            role: inviteRole
-        })
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-
-      alert("Invitation sent successfully!");
-      setShowInvite(false);
-      setInviteEmail("");
-      setInviteName("");
-    } catch (err: any) {
-      alert("Error sending invite: " + err.message);
-    } finally {
-      setInviteLoading(false);
-    }
+  // Simple Net Pay Calculation (Mock logic as per "Universal" requirement)
+  // Base - 10% Tax - 5% Deductions
+  const calculateNetPay = (basic: number) => {
+      const tax = basic * 0.10;
+      const deductions = basic * 0.05;
+      return basic - tax - deductions;
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 relative">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-[#0A192F]">Staff & HR</h2>
-          <p className="text-muted-foreground">Manage employees and system users.</p>
+          <h2 className="text-3xl font-bold tracking-tight text-[#0A192F]">HR & Payroll</h2>
+          <p className="text-muted-foreground">Manage human capital and assignments.</p>
         </div>
         <Button
             className="bg-[#0A192F] hover:bg-[#1B4D3E]"
-            onClick={() => setShowInvite(!showInvite)}
+            onClick={() => setShowAddModal(true)}
         >
-          <UserPlus className="mr-2 h-4 w-4" /> Invite User
+          <UserPlus className="mr-2 h-4 w-4" /> Add Employee
         </Button>
       </div>
 
-      {showInvite && (
-        <Card className="bg-slate-50 border-dashed border-2 border-slate-300">
-            <CardHeader>
-                <CardTitle className="text-sm">Invite New Team Member</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <form onSubmit={handleInvite} className="flex gap-4 items-end">
-                    <div className="space-y-2 flex-1">
-                        <label className="text-xs font-medium">Full Name</label>
-                        <Input
-                            value={inviteName}
-                            onChange={e => setInviteName(e.target.value)}
-                            placeholder="Jane Doe"
-                            required
-                        />
-                    </div>
-                    <div className="space-y-2 flex-1">
-                        <label className="text-xs font-medium">Email Address</label>
-                        <Input
-                            type="email"
-                            value={inviteEmail}
-                            onChange={e => setInviteEmail(e.target.value)}
-                            placeholder="jane@company.com"
-                            required
-                        />
-                    </div>
-                    <div className="space-y-2 w-40">
-                        <label className="text-xs font-medium">Role</label>
-                        <select
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                            value={inviteRole}
-                            onChange={e => setInviteRole(e.target.value)}
-                        >
-                            <option value="staff">Staff</option>
-                            <option value="driver">Driver</option>
-                            <option value="mechanic">Mechanic</option>
-                            <option value="manager">Manager</option>
-                            <option value="admin">Admin</option>
-                        </select>
-                    </div>
-                    <Button type="submit" disabled={inviteLoading}>
-                        {inviteLoading ? "Sending..." : "Send Invite"}
-                    </Button>
-                </form>
-            </CardContent>
-        </Card>
-      )}
-
       <Card>
         <CardHeader>
-          <CardTitle>Team Members</CardTitle>
+          <CardTitle>Staff Directory</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
             <div className="flex justify-center p-8">Loading...</div>
-          ) : staff.length === 0 ? (
+          ) : employees.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <Users className="h-12 w-12 mb-4 opacity-20" />
-              <p>No staff members found.</p>
+              <p>No employees found.</p>
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
+                  <TableHead>Job Title</TableHead>
+                  <TableHead>Assigned Branch</TableHead>
+                  <TableHead className="text-right">Basic Salary</TableHead>
+                  <TableHead className="text-right">Est. Net Pay</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {staff.map((member) => (
-                  <TableRow key={member.id}>
-                    <TableCell className="font-medium">{member.full_name}</TableCell>
-                    <TableCell>{member.email}</TableCell>
-                    <TableCell className="capitalize">{member.role}</TableCell>
+                {employees.map((emp) => (
+                  <TableRow key={emp.id}>
+                    <TableCell className="font-medium">{emp.first_name} {emp.last_name}</TableCell>
+                    <TableCell>{emp.job_title}</TableCell>
+                    <TableCell className="flex items-center gap-2">
+                        {emp.location ? (
+                            <><MapPin className="h-3 w-3 text-muted-foreground" /> {emp.location.name}</>
+                        ) : (
+                            <span className="text-muted-foreground italic">Unassigned</span>
+                        )}
+                    </TableCell>
+                    <TableCell className="text-right">{formatCurrency(emp.basic_salary)}</TableCell>
+                    <TableCell className="text-right font-bold text-emerald-600">
+                        {formatCurrency(calculateNetPay(emp.basic_salary))}
+                    </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
-                        Active
+                      <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 uppercase text-xs">
+                        {emp.status}
                       </Badge>
                     </TableCell>
                   </TableRow>
@@ -172,6 +112,59 @@ export default function HRPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Add Employee Modal */}
+      {showAddModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+              <Card className="w-full max-w-lg bg-white">
+                  <CardHeader className="flex flex-row items-center justify-between">
+                      <CardTitle>Add New Employee</CardTitle>
+                      <Button variant="ghost" size="icon" onClick={() => setShowAddModal(false)}><X className="h-4 w-4"/></Button>
+                  </CardHeader>
+                  <CardContent>
+                      <form action={async (formData) => {
+                          const res = await createEmployeeAction(formData);
+                          if (res?.error) { alert(res.error); return; }
+                          setShowAddModal(false);
+                          fetchData();
+                      }} className="space-y-4">
+                          <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                  <label className="text-sm font-medium">First Name</label>
+                                  <Input name="firstName" required placeholder="Jane"/>
+                              </div>
+                              <div className="space-y-2">
+                                  <label className="text-sm font-medium">Last Name</label>
+                                  <Input name="lastName" required placeholder="Doe"/>
+                              </div>
+                          </div>
+                          <div className="space-y-2">
+                              <label className="text-sm font-medium">Email</label>
+                              <Input name="email" type="email" required placeholder="jane.doe@company.com"/>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                  <label className="text-sm font-medium">Job Title</label>
+                                  <Input name="jobTitle" required placeholder="Manager"/>
+                              </div>
+                              <div className="space-y-2">
+                                  <label className="text-sm font-medium">Basic Salary</label>
+                                  <Input name="basicSalary" type="number" required placeholder="0.00"/>
+                              </div>
+                          </div>
+                          <div className="space-y-2">
+                              <label className="text-sm font-medium">Assign to Location</label>
+                              <select name="locationId" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                                  <option value="">Headquarters / Unassigned</option>
+                                  {locations.map(l => <option key={l.id} value={l.id}>{l.name} ({l.type})</option>)}
+                              </select>
+                          </div>
+                          <Button type="submit" className="w-full bg-[#0A192F]">Save Employee</Button>
+                      </form>
+                  </CardContent>
+              </Card>
+          </div>
+      )}
     </div>
   );
 }
