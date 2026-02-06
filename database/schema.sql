@@ -1,7 +1,68 @@
 -- Enable UUID extension
 create extension if not exists "uuid-ossp";
 
--- ORGANIZATIONS
+-- 1. AUDIT LOGGING (FORENSIC LEVEL)
+create table audit_logs (
+  id uuid primary key default uuid_generate_v4(),
+  organization_id uuid, -- Nullable because system-wide events might not have it, but rows should.
+  table_name text not null,
+  record_id uuid,
+  operation text not null, -- INSERT, UPDATE, DELETE
+  old_data jsonb,
+  new_data jsonb,
+  changed_by uuid, -- References auth.users(id) or profiles(id)
+  timestamp timestamp with time zone default now()
+);
+
+-- Generic Audit Trigger Function
+create or replace function audit_trigger_func()
+returns trigger as $$
+declare
+  user_id uuid;
+  org_id uuid;
+begin
+  -- Try to get the current user ID from Supabase auth context
+  select auth.uid() into user_id;
+
+  -- Try to extract organization_id from the record (NEW or OLD)
+  if TG_OP = 'INSERT' or TG_OP = 'UPDATE' then
+    begin
+      org_id := NEW.organization_id;
+    exception when others then
+      org_id := null;
+    end;
+  else
+    begin
+      org_id := OLD.organization_id;
+    exception when others then
+      org_id := null;
+    end;
+  end if;
+
+  insert into audit_logs (
+    organization_id,
+    table_name,
+    record_id,
+    operation,
+    old_data,
+    new_data,
+    changed_by
+  )
+  values (
+    org_id,
+    TG_TABLE_NAME,
+    coalesce(NEW.id, OLD.id),
+    TG_OP,
+    case when TG_OP = 'DELETE' or TG_OP = 'UPDATE' then to_jsonb(OLD) else null end,
+    case when TG_OP = 'INSERT' or TG_OP = 'UPDATE' then to_jsonb(NEW) else null end,
+    user_id
+  );
+
+  return coalesce(NEW, OLD);
+end;
+$$ language plpgsql security definer;
+
+-- 2. ORGANIZATIONS
 create table organizations (
   id uuid primary key default uuid_generate_v4(),
   name text not null,
@@ -9,7 +70,7 @@ create table organizations (
   settings jsonb default '{}'::jsonb
 );
 
--- PROFILES (Users)
+-- 3. PROFILES (Users)
 create type user_role as enum ('admin', 'manager', 'driver', 'mechanic', 'storekeeper', 'accountant', 'hr', 'guard', 'staff');
 
 create table profiles (
@@ -21,42 +82,53 @@ create table profiles (
   created_at timestamp with time zone default now()
 );
 
--- INVENTORY MODULE
-create table inventory_warehouses (
+-- 4. LOCATIONS (Scalable: HQ, Camps, Departments)
+create type location_type as enum ('main_store', 'camp', 'department', 'station');
+
+create table locations (
   id uuid primary key default uuid_generate_v4(),
   organization_id uuid references organizations(id) not null,
   name text not null,
-  type text not null, -- 'main', 'camp', 'department'
-  location text
+  type location_type not null,
+  parent_id uuid references locations(id), -- Hierarchy (e.g., Kitchen inside Baobab Camp)
+  created_at timestamp with time zone default now()
 );
 
+-- 5. INVENTORY & PROFIT ENGINE
 create table inventory_items (
   id uuid primary key default uuid_generate_v4(),
   organization_id uuid references organizations(id) not null,
   name text not null,
   sku text,
-  category text,
-  unit text not null, -- 'kg', 'ltr', 'pcs'
+  category text, -- 'Beverage', 'Food', 'Spare Part'
+  unit text not null, -- 'kg', 'btl', 'pcs'
   current_stock numeric default 0,
   min_stock_level numeric default 0,
-  cost_price numeric default 0,
+  cost_price numeric default 0, -- Moving Average or Last Cost
+  selling_price numeric default 0, -- For profit calculation (e.g. Bar)
   created_at timestamp with time zone default now()
 );
+
+create type transaction_type as enum ('receive', 'issue', 'transfer', 'adjust', 'sale');
+create type transaction_status as enum ('pending', 'approved', 'rejected', 'completed');
 
 create table inventory_transactions (
   id uuid primary key default uuid_generate_v4(),
   organization_id uuid references organizations(id) not null,
   item_id uuid references inventory_items(id) not null,
-  warehouse_id uuid references inventory_warehouses(id),
-  type text not null, -- 'in', 'out', 'transfer', 'adjust'
+  source_location_id uuid references locations(id), -- Where it came from (NULL for Vendor)
+  target_location_id uuid references locations(id), -- Where it went (NULL for Waste/Consumption)
+  type transaction_type not null,
   quantity numeric not null,
   unit_cost numeric,
-  reference text,
+  unit_price numeric, -- For sales
+  status transaction_status default 'completed', -- Transfers require approval
+  reference text, -- PO Number, Receipt ID
   created_by uuid references profiles(id),
   created_at timestamp with time zone default now()
 );
 
--- FLEET MODULE
+-- 6. FLEET MODULE
 create table vehicles (
   id uuid primary key default uuid_generate_v4(),
   organization_id uuid references organizations(id) not null,
@@ -65,7 +137,7 @@ create table vehicles (
   model text not null,
   year int,
   vin text,
-  status text default 'active', -- 'active', 'maintenance', 'out_of_service'
+  status text default 'active',
   current_odometer numeric default 0,
   service_interval_km numeric default 5000,
   last_service_km numeric default 0,
@@ -82,7 +154,7 @@ create table trips (
   start_odometer numeric,
   end_odometer numeric,
   purpose text,
-  status text default 'planned', -- 'planned', 'active', 'completed'
+  status text default 'planned',
   created_at timestamp with time zone default now()
 );
 
@@ -105,13 +177,13 @@ create table maintenance_jobs (
   organization_id uuid references organizations(id) not null,
   vehicle_id uuid references vehicles(id) not null,
   description text not null,
-  status text default 'pending', -- 'pending', 'in_progress', 'completed'
+  status text default 'pending',
   cost numeric default 0,
   scheduled_date date,
   completed_date date
 );
 
--- HR MODULE
+-- 7. HR MODULE
 create table staff (
   id uuid primary key default uuid_generate_v4(),
   organization_id uuid references organizations(id) not null,
@@ -130,14 +202,14 @@ create table leave_requests (
   staff_id uuid references staff(id) not null,
   start_date date not null,
   end_date date not null,
-  type text not null, -- 'annual', 'sick', 'unpaid'
+  type text not null,
   reason text,
-  status text default 'pending', -- 'pending', 'approved', 'rejected'
+  status text default 'pending',
   approved_by uuid references profiles(id),
   created_at timestamp with time zone default now()
 );
 
--- OPERATIONS / GUESTS
+-- 8. OPERATIONS / GUESTS
 create table guests (
   id uuid primary key default uuid_generate_v4(),
   organization_id uuid references organizations(id) not null,
@@ -167,12 +239,12 @@ create table booking_guests (
   room_number text
 );
 
--- ROW LEVEL SECURITY
+-- ROW LEVEL SECURITY (RLS)
 
 alter table organizations enable row level security;
 alter table profiles enable row level security;
+alter table locations enable row level security;
 alter table inventory_items enable row level security;
-alter table inventory_warehouses enable row level security;
 alter table inventory_transactions enable row level security;
 alter table vehicles enable row level security;
 alter table trips enable row level security;
@@ -183,32 +255,27 @@ alter table leave_requests enable row level security;
 alter table guests enable row level security;
 alter table bookings enable row level security;
 alter table booking_guests enable row level security;
+alter table audit_logs enable row level security;
 
 -- POLICIES
 
--- Helper function to get current user's org
 create or replace function get_my_org_id()
 returns uuid as $$
   select organization_id from profiles where id = auth.uid()
 $$ language sql security definer;
 
--- Organizations: Users can view their own org
-create policy "View own org" on organizations
-  for select using (id = get_my_org_id());
+-- Organizations
+create policy "View own org" on organizations for select using (id = get_my_org_id());
 
--- Profiles: View profiles in same org, or self
-create policy "View org profiles" on profiles
-  for select using (organization_id = get_my_org_id() or id = auth.uid());
+-- Profiles
+create policy "View org profiles" on profiles for select using (organization_id = get_my_org_id() or id = auth.uid());
+create policy "Update self" on profiles for update using (id = auth.uid());
 
-create policy "Update self" on profiles
-  for update using (id = auth.uid());
-
--- Generic Policy Generator Macro (Conceptually)
--- We will apply explicit policies for clarity
+-- Locations
+create policy "Org locations" on locations for all using (organization_id = get_my_org_id());
 
 -- Inventory
 create policy "Org inventory items" on inventory_items for all using (organization_id = get_my_org_id());
-create policy "Org inventory warehouses" on inventory_warehouses for all using (organization_id = get_my_org_id());
 create policy "Org inventory transactions" on inventory_transactions for all using (organization_id = get_my_org_id());
 
 -- Fleet
@@ -226,25 +293,32 @@ create policy "Org guests" on guests for all using (organization_id = get_my_org
 create policy "Org bookings" on bookings for all using (organization_id = get_my_org_id());
 create policy "Org booking guests" on booking_guests for all using (organization_id = get_my_org_id());
 
+-- Audit Logs (Admins only usually, but let's allow read for org)
+create policy "View org audit logs" on audit_logs for select using (organization_id = get_my_org_id());
 
--- TRIGGERS
+-- AUTO-ASSIGN ORGANIZATION TRIGGER (CRITICAL FIX)
 
--- Function to handle new user registration
 create or replace function public.handle_new_user()
 returns trigger as $$
 declare
   org_id uuid;
 begin
-  -- Check if user has 'company_name' in metadata (Sign Up)
+  -- 1. New Company Registration
   if new.raw_user_meta_data->>'company_name' is not null then
+    -- Create Organization
     insert into organizations (name)
     values (new.raw_user_meta_data->>'company_name')
     returning id into org_id;
 
+    -- Create Admin Profile
     insert into public.profiles (id, organization_id, full_name, email, role)
     values (new.id, org_id, new.raw_user_meta_data->>'full_name', new.email, 'admin');
 
-  -- Check if user has 'organization_id' in metadata (Invite)
+    -- Initialize Default Locations (Scalability Starter Pack)
+    insert into public.locations (organization_id, name, type) values
+    (org_id, 'Main Store', 'main_store');
+
+  -- 2. Invited User
   elsif new.raw_user_meta_data->>'organization_id' is not null then
     insert into public.profiles (id, organization_id, full_name, email, role)
     values (
@@ -254,17 +328,29 @@ begin
       new.email,
       (new.raw_user_meta_data->>'role')::user_role
     );
-
-  -- Fallback (should not happen in strict flow)
-  else
-    -- Maybe log error or do nothing
   end if;
 
   return new;
 end;
-$$ language plpgsql security definer;
+$$ language plpgsql security definer; -- SECURITY DEFINER is key here!
 
--- Trigger
+-- Re-create Trigger
+drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
+
+
+-- APPLY AUDIT TRIGGERS TO ALL TABLES
+create trigger audit_organizations after insert or update or delete on organizations for each row execute procedure audit_trigger_func();
+create trigger audit_profiles after insert or update or delete on profiles for each row execute procedure audit_trigger_func();
+create trigger audit_locations after insert or update or delete on locations for each row execute procedure audit_trigger_func();
+create trigger audit_inventory_items after insert or update or delete on inventory_items for each row execute procedure audit_trigger_func();
+create trigger audit_inventory_transactions after insert or update or delete on inventory_transactions for each row execute procedure audit_trigger_func();
+create trigger audit_vehicles after insert or update or delete on vehicles for each row execute procedure audit_trigger_func();
+create trigger audit_trips after insert or update or delete on trips for each row execute procedure audit_trigger_func();
+create trigger audit_fuel_logs after insert or update or delete on fuel_logs for each row execute procedure audit_trigger_func();
+create trigger audit_maintenance_jobs after insert or update or delete on maintenance_jobs for each row execute procedure audit_trigger_func();
+create trigger audit_staff after insert or update or delete on staff for each row execute procedure audit_trigger_func();
+create trigger audit_guests after insert or update or delete on guests for each row execute procedure audit_trigger_func();
+create trigger audit_bookings after insert or update or delete on bookings for each row execute procedure audit_trigger_func();
