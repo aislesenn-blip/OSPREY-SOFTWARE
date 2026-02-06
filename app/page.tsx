@@ -9,6 +9,7 @@ export default function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [companyName, setCompanyName] = useState("");
+  const [industryType, setIndustryType] = useState("COMPANY");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -31,11 +32,12 @@ export default function AuthPage() {
           options: {
             data: {
               company_name: companyName,
+              industry_type: industryType,
             },
           },
         });
         if (error) throw error;
-        alert("Check your email for the confirmation link!");
+        alert("Check your email for the confirmation link! Your organization environment is being auto-configured.");
       }
     } catch (error: any) {
       alert(error.message);
@@ -54,16 +56,31 @@ export default function AuthPage() {
 
             <form onSubmit={handleAuth} className="space-y-4">
                 {!isLogin && (
-                    <div>
-                        <label className="block text-sm font-medium mb-1">Organization Name</label>
-                        <input
-                            type="text"
-                            required
-                            className="w-full p-2 border border-gray-300 rounded"
-                            value={companyName}
-                            onChange={(e) => setCompanyName(e.target.value)}
-                        />
-                    </div>
+                    <>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Organization Name</label>
+                            <input
+                                type="text"
+                                required
+                                className="w-full p-2 border border-gray-300 rounded"
+                                value={companyName}
+                                onChange={(e) => setCompanyName(e.target.value)}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Organization Type</label>
+                            <select
+                                className="w-full p-2 border border-gray-300 rounded"
+                                value={industryType}
+                                onChange={(e) => setIndustryType(e.target.value)}
+                            >
+                                <option value="COMPANY">Company / Enterprise</option>
+                                <option value="UNIVERSITY">University / Education</option>
+                                <option value="NGO">NGO / Non-Profit</option>
+                                <option value="GOVERNMENT">Government / Public Sector</option>
+                            </select>
+                        </div>
+                    </>
                 )}
 
                 <div>
