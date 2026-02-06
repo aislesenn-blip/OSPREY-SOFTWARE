@@ -31,7 +31,7 @@ export default function ReceivingPage() {
     const { data: iData } = await supabase.from("inventory_items").select("*");
     if (iData) setItems(iData);
 
-    const { data: wData } = await supabase.from("inventory_warehouses").select("*");
+    const { data: wData } = await supabase.from("locations").select("*").in('type', ['main_store', 'camp', 'department']);
     if (wData) setWarehouses(wData);
 
     setLoading(false);
