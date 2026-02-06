@@ -12,17 +12,27 @@ import {
   Settings,
   FileText,
   LogOut,
-  Mountain
+  Mountain,
+  MessageSquare,
+  CheckSquare,
+  DollarSign,
+  ClipboardList,
+  Monitor
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 
 const navItems = [
   { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Fleet Control", href: "/dashboard/fleet", icon: Truck },
+  { name: "Communication", href: "/dashboard/communication", icon: MessageSquare },
+  { name: "Tasks", href: "/dashboard/tasks", icon: CheckSquare },
   { name: "Inventory", href: "/dashboard/inventory", icon: Package },
-  { name: "Staff & HR", href: "/dashboard/hr", icon: Users },
+  { name: "HR & Payroll", href: "/dashboard/hr", icon: Users },
+  { name: "Finance", href: "/dashboard/finance", icon: DollarSign },
+  { name: "Assets", href: "/dashboard/assets", icon: Monitor },
+  { name: "Fleet", href: "/dashboard/fleet", icon: Truck },
   { name: "Operations", href: "/dashboard/operations", icon: CalendarDays },
+  { name: "Forms", href: "/dashboard/forms", icon: ClipboardList },
   { name: "Reports", href: "/dashboard/reports", icon: FileText },
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
