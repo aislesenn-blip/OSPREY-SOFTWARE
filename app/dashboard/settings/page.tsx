@@ -20,7 +20,7 @@ export default function SettingsPage() {
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
   const [newLocName, setNewLocName] = useState("");
-  const [newLocType, setNewLocType] = useState("camp");
+  const [newLocType, setNewLocType] = useState("branch");
 
   useEffect(() => {
     fetchLocations();
@@ -86,7 +86,7 @@ export default function SettingsPage() {
                 <Input
                   value={newLocName}
                   onChange={e => setNewLocName(e.target.value)}
-                  placeholder="e.g. Serengeti North Camp"
+                  placeholder="e.g. Downtown Branch"
                 />
               </div>
               <div className="space-y-2 w-40">
@@ -96,8 +96,10 @@ export default function SettingsPage() {
                   value={newLocType}
                   onChange={e => setNewLocType(e.target.value)}
                 >
-                  <option value="camp">Camp</option>
-                  <option value="main_store">Main Store</option>
+                  <option value="hq">HQ</option>
+                  <option value="branch">Branch</option>
+                  <option value="store">Store</option>
+                  <option value="site">Site</option>
                   <option value="department">Department</option>
                 </select>
               </div>
