@@ -1,125 +1,181 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from 'react';
-import { InventoryItem } from '@/types/inventory';
-import { useRouter } from 'next/navigation';
-import { CheckCircle, AlertCircle } from 'lucide-react';
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
+import { Button } from '@/components/ui/Button'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table'
+import { ArrowLeft, Plus, Trash2 } from 'lucide-react'
+import Link from 'next/link'
+import { InventoryItem } from '@/types'
 
-export default function BlindReceiving() {
-  const router = useRouter();
-  const [items, setItems] = useState<InventoryItem[]>([]);
-  const [selectedItem, setSelectedItem] = useState('');
-  const [quantity, setQuantity] = useState('');
-  const [reference, setReference] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
+export default function ReceiveStockPage() {
+  const router = useRouter()
+  const [items, setItems] = useState<InventoryItem[]>([])
+  const [warehouses, setWarehouses] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
+
+  const [selectedWarehouse, setSelectedWarehouse] = useState('')
+  const [lines, setLines] = useState([{ itemId: '', quantity: 0, cost: 0 }])
 
   useEffect(() => {
-    fetch('/api/v1/ops/inventory/items')
-      .then(res => res.json())
-      .then(data => setItems(data.data || []));
-  }, []);
+    async function fetchData() {
+      const { data: itemsData } = await supabase.from('inventory_items').select('*').order('name')
+      const { data: whData } = await supabase.from('warehouses').select('*').order('name')
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const res = await fetch('/api/v1/ops/inventory/receive', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          itemId: selectedItem,
-          quantity: Number(quantity),
-          locationId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', // Assuming main store logic handled in API or default
-          reference
-        })
-      });
-
-      if (res.ok) {
-        setSuccess(true);
-        setTimeout(() => router.push('/inventory'), 1500);
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
+      if (itemsData) setItems(itemsData)
+      if (whData) setWarehouses(whData)
     }
-  };
+    fetchData()
+  }, [])
+
+  const addLine = () => {
+    setLines([...lines, { itemId: '', quantity: 0, cost: 0 }])
+  }
+
+  const removeLine = (index: number) => {
+    setLines(lines.filter((_, i) => i !== index))
+  }
+
+  const updateLine = (index: number, field: string, value: any) => {
+    const newLines = [...lines]
+    newLines[index] = { ...newLines[index], [field]: value }
+    setLines(newLines)
+  }
+
+  const handleSubmit = async () => {
+    setLoading(true)
+    try {
+      if (!selectedWarehouse) throw new Error('Select a warehouse')
+
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not authenticated')
+
+      // Get org id from profile (in a real app, use context or hook)
+      const { data: profile } = await supabase.from('profiles').select('organization_id').eq('id', user.id).single()
+      if (!profile) throw new Error('No profile')
+
+      const movements = lines.map(line => ({
+        organization_id: profile.organization_id,
+        item_id: line.itemId,
+        warehouse_id: selectedWarehouse,
+        type: 'in',
+        quantity: line.quantity,
+        unit_cost: line.cost,
+        created_by: user.id
+      }))
+
+      const { error } = await supabase.from('stock_movements').insert(movements)
+      if (error) throw error
+
+      router.push('/dashboard/inventory')
+    } catch (error: any) {
+      alert(error.message)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div className="border-b border-slate-200 pb-4">
-        <h1 className="text-2xl font-bold text-slate-900">Receive Goods</h1>
-        <p className="text-slate-500">Blind Receiving Mode: Enter physical count only.</p>
+    <div className="space-y-8 max-w-4xl mx-auto">
+      <div className="flex items-center space-x-4">
+        <Link href="/dashboard/inventory">
+          <Button variant="ghost" size="sm">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+        </Link>
+        <div>
+          <h2 className="text-2xl font-light text-osprey-navy">Receive Stock</h2>
+          <p className="text-osprey-navy/60">Record incoming inventory items.</p>
+        </div>
       </div>
 
-      {success && (
-        <div className="bg-emerald-50 text-emerald-700 p-4 rounded-md flex items-center gap-2">
-          <CheckCircle size={20} />
-          <span>Stock received successfully. Updating Ledger...</span>
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg border border-slate-200 shadow-sm">
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Select Item</label>
-          <select
-            className="w-full border-slate-300 rounded-md shadow-sm focus:border-slate-500 focus:ring-slate-500 p-2 border"
-            value={selectedItem}
-            onChange={(e) => setSelectedItem(e.target.value)}
-            required
-          >
-            <option value="">-- Choose Item --</option>
-            {items.map(item => (
-              <option key={item.id} value={item.id}>{item.name} ({item.unit})</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Reference (PO / Invoice #)</label>
-          <input
-            type="text"
-            className="w-full border-slate-300 rounded-md shadow-sm focus:border-slate-500 focus:ring-slate-500 p-2 border"
-            placeholder="e.g. INV-2023-001"
-            value={reference}
-            onChange={(e) => setReference(e.target.value)}
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Quantity Received</label>
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              className="flex-1 border-slate-300 rounded-md shadow-sm focus:border-slate-500 focus:ring-slate-500 p-2 border"
-              placeholder="0.00"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-              required
-              min="0"
-              step="0.01"
-            />
-            <span className="text-slate-500 text-sm font-medium bg-slate-100 px-3 py-2 rounded-md">
-              {items.find(i => i.id === selectedItem)?.unit || 'Unit'}
-            </span>
+      <Card>
+        <CardHeader>
+          <CardTitle>Receipt Details</CardTitle>
+          <CardDescription>Select destination warehouse and add items.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="w-1/2">
+            <label className="text-sm font-medium mb-1 block">Destination Warehouse</label>
+            <Select
+              value={selectedWarehouse}
+              onChange={(e) => setSelectedWarehouse(e.target.value)}
+            >
+              <option value="">Select Warehouse...</option>
+              {warehouses.map(wh => (
+                <option key={wh.id} value={wh.id}>{wh.name} ({wh.type})</option>
+              ))}
+            </Select>
           </div>
-          <p className="text-xs text-slate-500 mt-2 flex items-center gap-1">
-             <AlertCircle size={12} />
-             Do not rely on the delivery note. Count physically.
-          </p>
-        </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-slate-900 text-white py-2 px-4 rounded-md hover:bg-slate-800 transition disabled:opacity-50"
-        >
-          {loading ? 'Processing...' : 'Confirm Receipt'}
-        </button>
-      </form>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[40%]">Item</TableHead>
+                <TableHead>Quantity</TableHead>
+                <TableHead>Unit Cost</TableHead>
+                <TableHead className="w-[50px]"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {lines.map((line, index) => (
+                <TableRow key={index}>
+                  <TableCell>
+                    <Select
+                      value={line.itemId}
+                      onChange={(e) => updateLine(index, 'itemId', e.target.value)}
+                    >
+                      <option value="">Select Item...</option>
+                      {items.map(item => (
+                        <option key={item.id} value={item.id}>{item.name} ({item.unit})</option>
+                      ))}
+                    </Select>
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={line.quantity}
+                      onChange={(e) => updateLine(index, 'quantity', parseFloat(e.target.value))}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={line.cost}
+                      onChange={(e) => updateLine(index, 'cost', parseFloat(e.target.value))}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    {lines.length > 1 && (
+                      <Button variant="ghost" size="sm" onClick={() => removeLine(index)} className="text-red-500 hover:text-red-700">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+
+          <div className="flex justify-between pt-4 border-t">
+            <Button variant="outline" onClick={addLine}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Line
+            </Button>
+            <Button onClick={handleSubmit} disabled={loading}>
+              {loading ? 'Processing...' : 'Confirm Receipt'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
-  );
+  )
 }

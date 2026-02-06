@@ -1,10 +1,11 @@
 
-> osprey-os@0.1.0 start
-> next start -p 3001
+> osprey-erp@1.0.0 dev
+> next dev
 
-▲ Next.js 16.1.6
-- Local:         http://localhost:3001
-- Network:       http://192.168.0.2:3001
+   ▲ Next.js 14.0.4
+   - Local:        http://localhost:3000
 
-✓ Starting...
-✓ Ready in 773ms
+ ✓ Ready in 1873ms
+ ○ Compiling / ...
+ ✓ Compiled / in 5.3s (610 modules)
+ ✓ Compiled in 916ms (292 modules)

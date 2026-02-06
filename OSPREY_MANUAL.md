@@ -1,53 +1,52 @@
-# OSPREY MANUAL: The "Bible" of the System
+# OSPREY Enterprise Tourism OS
 
-## 1. What is Osprey?
-OSPREY is the **Internal Operating System for High-End Safari Operations**. It is a multi-tenant SaaS ERP designed specifically for the unique logistical challenges of operating luxury safari camps in remote locations like Tanzania.
+## System Overview
+OSPREY is a high-end, multi-tenant SaaS ERP designed specifically for safari and tourism companies in Tanzania. It combines the functionality of SAP/Odoo with the design principles of Linear/Stripe.
 
-It replaces disjointed spreadsheets and paper trails with a unified digital command center.
+## Core Modules
 
-### Core Logic
-*   **Single Truth:** All data (Inventory, Fleet, HR, Guests) lives in one cloud database.
-*   **Offline-First Thinking:** Designed to be robust even with intermittent connectivity (though primarily cloud-based).
-*   **Strict Hierarchy:** Information flows from Camps -> HQ -> Accounts.
+### 1. Inventory Engine
+- **Global Stock**: Real-time view of stock across Main Store, Camp Stores, and Departments.
+- **Blind Receiving**: Security-focused receiving process where actual quantities are hidden from receivers.
+- **Unit Conversions**: Handles complex safari units (e.g., Kgs to Portions).
+- **Valuation**: FIFO/Weighted Average costing (configurable).
 
-## 2. The Architecture & Flow
+### 2. Fleet Command
+- **Vehicle Tracking**: Detailed registry of all safari cruisers, trucks, and supply vehicles.
+- **Trip Logs**: Digital logbooks for every movement, calculating KM and fuel consumption.
+- **Maintenance**: Predictive service scheduling based on KM logs.
+- **Fuel Control**: Variance reporting between issued fuel and logged consumption.
 
-### Connectivity
-*   **Supabase (PostgreSQL)** is the backend brain.
-*   **Next.js (App Router)** is the frontend interface.
-*   **Vercel** is the deployment infrastructure.
+### 3. HR & Payroll
+- **Staff Directory**: Centralized employee database.
+- **Leave Management**: Workflow for leave requests and approvals.
+- **Payroll**: Automated calculation of Tanzania PAYE, NSSF, and other deductions.
 
-### Organization Onboarding (The "Genesis")
-1.  **Registration:** A Company (Organization) is created in the database manually or via a Super-Admin portal.
-2.  **Admin Creation:** The first user (Admin) is linked to this Organization.
-3.  **Expansion:** The Admin logs in and creates other users (Camp Managers, Drivers, etc.) via the HR/Staff module.
+### 4. Operations (Guest Manifest)
+- **Manifest**: Real-time view of arriving and departing guests.
+- **Dietary & Preferences**: Critical info for Camp Managers and Chefs.
+- **Rooming**: Tent/Room allocation management.
 
-### Multi-Tenancy
-*   **Rule #1:** Every single row in the database has an `organization_id`.
-*   **Data Isolation:** Users can ONLY see data belonging to their `organization_id`.
-*   **RLS (Row Level Security):** The database enforces this isolation at the lowest level.
+### 5. Finance & Reporting
+- **Profit Per Trip**: Analysis of revenue vs. direct costs (fuel, park fees, allowances).
+- **Stock Valuation**: Real-time asset value reporting.
 
-## 3. The User Roles
+## User Roles & Permissions
+- **Admin**: Full system access.
+- **Camp Manager**: Access to specific Camp Store, Staff, and Guest Manifest.
+- **Inventory Manager**: Full control over stock, purchasing, and transfers.
+- **Storekeeper**: Restricted to Issues and Receiving.
+- **Driver**: Can only log Trips and Fuel.
+- **Mechanic**: Access to Maintenance Job Cards.
+- **HR Manager**: Access to Staff and Payroll.
 
-Who uses Osprey?
+## Technical Architecture
+- **Frontend**: Next.js 14 (App Router), Tailwind CSS, Lucide Icons.
+- **Backend**: Supabase (PostgreSQL).
+- **Auth**: Supabase Auth (Row Level Security enforced).
+- **Deployment**: Vercel.
 
-| Role | Responsibility | Access Level |
-| :--- | :--- | :--- |
-| **Admin** | The Owner/General Manager. | **God Mode.** Can see all camps, finances, and settings. |
-| **Camp Manager** | Runs a specific Camp (e.g., Baobab Camp). | specific Camp Inventory, Guest Lists, Maintenance. |
-| **Storekeeper** | Manages the Central Store or Camp Store. | Inventory (Receive, Issue, Stocktake). Cannot see Finance/HR. |
-| **Driver** | Safari Guides & Logistics Drivers. | Vehicle Checks, Fuel Logs, Trip Logs. |
-| **Mechanic** | Fleet Maintenance. | Service Logs, Spare Parts usage. |
-| **Accountant** | HQ Finance Team. | Ledger, Reports, Expenses, Revenue. |
-| **Guard/Gate** | Security Post. | Gate Passes, Vehicle In/Out logging. |
-
-## 4. The Login Logic
-
-*   **No Self-Signup:** Public users cannot just "sign up". Access is granted by the Organization Admin.
-*   **Credentials:** Users log in with **Email** and **Password**.
-*   **Authentication Flow:**
-    1.  User enters credentials on `/` (Login Page).
-    2.  Supabase Auth validates the user.
-    3.  System checks the `profiles` table to get the User's `role` and `organization_id`.
-    4.  User is redirected to `/dashboard`.
-    5.  **404 Protection:** If a user tries to access a restricted or non-existent page, they are safely redirected to `/dashboard`.
+## Getting Started
+1. **Registration**: Companies register via the landing page. This creates a new `organization`.
+2. **User Invite**: Admins invite staff via the Admin Settings.
+3. **Setup**: Configure Warehouses and Vehicles to begin operations.

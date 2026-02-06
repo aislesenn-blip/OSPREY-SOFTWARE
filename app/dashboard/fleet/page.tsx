@@ -1,116 +1,103 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { Truck, Fuel, AlertTriangle, Settings } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase'
+import { Button } from '@/components/ui/Button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table'
+import { StatusBadge } from '@/components/ui/StatusBadge'
+import { Plus, Wrench } from 'lucide-react'
+import { Vehicle } from '@/types'
+import Link from 'next/link'
 
-interface Vehicle {
-  id: string;
-  plate_number: string;
-  model: string;
-  current_km: number;
-  service_due_km: number;
-  status: string;
-  // Computed client-side
-  is_overdue?: boolean;
-}
-
-export default function FleetDashboard() {
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function FleetPage() {
+  const [vehicles, setVehicles] = useState<Vehicle[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function fetchFleet() {
+    async function fetchVehicles() {
       const { data, error } = await supabase
         .from('vehicles')
-        .select('*');
+        .select('*')
+        .order('registration_number')
 
-      if (error) {
-        console.error('Error fetching fleet:', error);
-      } else if (data) {
-        const processed = data.map((v: Vehicle) => ({
-          ...v,
-          is_overdue: v.current_km > v.service_due_km
-        }));
-        setVehicles(processed);
-      }
-      setLoading(false);
+      if (!error && data) setVehicles(data)
+      setLoading(false)
     }
-
-    fetchFleet();
-  }, []);
+    fetchVehicles()
+  }, [])
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-slate-900">Fleet Management</h1>
-        <Link href="/dashboard/fleet/fuel" className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-md hover:bg-slate-800 transition">
-          <Fuel size={16} />
-          Dispense Fuel
-        </Link>
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-light text-osprey-navy">Fleet Command</h2>
+          <p className="text-osprey-navy/60 mt-2">Manage vehicles, trips, and maintenance.</p>
+        </div>
+        <div className="flex space-x-3">
+          <Link href="/dashboard/fleet/trips">
+             <Button variant="outline">View Trips</Button>
+          </Link>
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Vehicle
+          </Button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {loading ? (
-          <p className="text-slate-500">Loading Fleet...</p>
-        ) : vehicles.length === 0 ? (
-          <p className="text-slate-500">No vehicles found in database.</p>
-        ) : vehicles.map((vehicle) => (
-          <div key={vehicle.id} className={`p-6 rounded-lg border shadow-sm bg-white ${vehicle.is_overdue || vehicle.status === 'blocked' ? 'border-red-200' : 'border-slate-200'}`}>
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-md ${vehicle.is_overdue ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-600'}`}>
-                  <Truck size={24} />
-                </div>
-                <div>
-                  <h3 className="font-bold text-slate-900">{vehicle.plate_number}</h3>
-                  <p className="text-sm text-slate-500">{vehicle.model}</p>
-                </div>
-              </div>
-              <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${
-                vehicle.is_overdue || vehicle.status === 'blocked'
-                  ? 'bg-red-100 text-red-700'
-                  : 'bg-emerald-100 text-emerald-700'
-              }`}>
-                {vehicle.is_overdue ? 'BLOCKED' : vehicle.status}
-              </span>
-            </div>
-
-            <div className="space-y-3">
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-slate-500">Odometer</span>
-                  <span className="font-medium text-slate-900">{vehicle.current_km.toLocaleString()} km</span>
-                </div>
-                <div className="w-full bg-slate-100 rounded-full h-2">
-                  <div
-                    className={`h-2 rounded-full ${vehicle.is_overdue ? 'bg-red-500' : 'bg-blue-500'}`}
-                    style={{ width: `${Math.min((vehicle.current_km % 10000) / 100, 100)}%` }} // Visual approximation
-                  ></div>
-                </div>
-              </div>
-
-              <div className="flex justify-between items-center text-xs p-2 bg-slate-50 rounded border border-slate-100">
-                <div className="flex items-center gap-1 text-slate-600">
-                   <Settings size={12} />
-                   <span>Service Due</span>
-                </div>
-                <span className={`font-medium ${vehicle.is_overdue ? 'text-red-600' : 'text-slate-900'}`}>
-                  {vehicle.service_due_km.toLocaleString()} km
-                </span>
-              </div>
-
-              {vehicle.is_overdue && (
-                <div className="flex items-start gap-2 text-xs text-red-600 bg-red-50 p-2 rounded">
-                  <AlertTriangle size={14} className="mt-0.5" />
-                  <span>Service Limit Exceeded. Vehicle is strictly grounded.</span>
-                </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Active Fleet</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Registration</TableHead>
+                <TableHead>Make / Model</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead className="text-right">Current KM</TableHead>
+                <TableHead className="text-right">Next Service</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="w-[50px]"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-osprey-navy/50">
+                    Loading fleet...
+                  </TableCell>
+                </TableRow>
+              ) : vehicles.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-osprey-navy/50">
+                    No vehicles found.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                vehicles.map((vehicle) => (
+                  <TableRow key={vehicle.id}>
+                    <TableCell className="font-mono font-medium">{vehicle.registration_number}</TableCell>
+                    <TableCell>{vehicle.make} {vehicle.model}</TableCell>
+                    <TableCell className="capitalize">{vehicle.type.replace('_', ' ')}</TableCell>
+                    <TableCell className="text-right font-mono">{vehicle.current_km.toLocaleString()} km</TableCell>
+                    <TableCell className="text-right font-mono text-osprey-navy/60">{vehicle.next_service_km?.toLocaleString()} km</TableCell>
+                    <TableCell>
+                      <StatusBadge status={vehicle.status} />
+                    </TableCell>
+                    <TableCell>
+                      <Button variant="ghost" size="sm">
+                        <Wrench className="h-4 w-4 text-osprey-navy/40" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
               )}
-            </div>
-          </div>
-        ))}
-      </div>
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
-  );
+  )
 }

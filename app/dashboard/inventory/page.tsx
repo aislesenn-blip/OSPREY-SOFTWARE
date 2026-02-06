@@ -1,78 +1,138 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from 'react';
-import { InventoryItem } from '@/types/inventory';
-import Link from 'next/link';
-import { Package, Plus } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase'
+import { Button } from '@/components/ui/Button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table'
+import { StatusBadge } from '@/components/ui/StatusBadge'
+import { Plus, Download, Search } from 'lucide-react'
+import { Input } from '@/components/ui/Input'
+import { InventoryItem } from '@/types'
+import { formatCurrency } from '@/lib/utils'
+import Link from 'next/link'
 
-export default function InventoryDashboard() {
-  const [items, setItems] = useState<InventoryItem[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function InventoryPage() {
+  const [items, setItems] = useState<InventoryItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
 
   useEffect(() => {
-    async function fetchItems() {
+    fetchItems()
+  }, [])
+
+  async function fetchItems() {
+    try {
       const { data, error } = await supabase
         .from('inventory_items')
-        .select('*');
+        .select('*')
+        .order('name')
 
-      if (error) {
-        console.error('Error fetching inventory:', error);
-      } else if (data) {
-        setItems(data as InventoryItem[]);
-      }
-      setLoading(false);
+      if (error) throw error
+      setItems(data || [])
+    } catch (error) {
+      console.error('Error fetching inventory:', error)
+    } finally {
+      setLoading(false)
     }
-    fetchItems();
-  }, []);
+  }
+
+  const filteredItems = items.filter(item =>
+    item.name.toLowerCase().includes(search.toLowerCase()) ||
+    item.sku.toLowerCase().includes(search.toLowerCase())
+  )
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-slate-900">Inventory Command</h1>
-        <Link href="/dashboard/inventory/receive" className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-md hover:bg-slate-800 transition">
-          <Plus size={16} />
-          Receive Goods
-        </Link>
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-light text-osprey-navy">Inventory Engine</h2>
+          <p className="text-osprey-navy/60 mt-2">Manage stock, valuation, and transfers.</p>
+        </div>
+        <div className="flex space-x-3">
+          <Link href="/dashboard/inventory/receive">
+            <Button variant="outline">
+              <Download className="mr-2 h-4 w-4" />
+              Receive Stock
+            </Button>
+          </Link>
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            New Item
+          </Button>
+        </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr>
-              <th className="px-6 py-4 font-medium text-slate-500">Item Name</th>
-              <th className="px-6 py-4 font-medium text-slate-500">Category</th>
-              <th className="px-6 py-4 font-medium text-slate-500">Unit</th>
-              <th className="px-6 py-4 font-medium text-slate-500">Min Stock</th>
-              <th className="px-6 py-4 font-medium text-slate-500">Status</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {loading ? (
-               <tr><td colSpan={5} className="px-6 py-4 text-center">Loading Inventory...</td></tr>
-            ) : items.length === 0 ? (
-               <tr><td colSpan={5} className="px-6 py-4 text-center text-slate-500">No items found.</td></tr>
-            ) : (
-              items.map((item) => (
-                <tr key={item.id} className="hover:bg-slate-50">
-                  <td className="px-6 py-4 font-medium text-slate-900 flex items-center gap-2">
-                    <Package size={16} className="text-slate-400" />
-                    {item.name}
-                  </td>
-                  <td className="px-6 py-4 text-slate-600 capitalize">{item.category}</td>
-                  <td className="px-6 py-4 text-slate-600">{item.unit}</td>
-                  <td className="px-6 py-4 text-slate-600">{item.minimum_stock}</td>
-                  <td className="px-6 py-4">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                      In Stock
-                    </span>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle>Global Stock</CardTitle>
+            <div className="w-72">
+               <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-osprey-navy/50" />
+                <Input
+                  placeholder="Search SKU or Name..."
+                  className="pl-8"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+               </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>SKU</TableHead>
+                <TableHead>Item Name</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead className="text-right">Stock Level</TableHead>
+                <TableHead>Unit</TableHead>
+                <TableHead className="text-right">Unit Cost</TableHead>
+                <TableHead className="text-right">Total Value</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8 text-osprey-navy/50">
+                    Loading inventory...
+                  </TableCell>
+                </TableRow>
+              ) : filteredItems.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8 text-osprey-navy/50">
+                    No items found.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredItems.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell className="font-mono text-xs">{item.sku}</TableCell>
+                    <TableCell className="font-medium">{item.name}</TableCell>
+                    <TableCell>{item.category}</TableCell>
+                    <TableCell className="text-right font-mono">
+                      {item.current_stock}
+                    </TableCell>
+                    <TableCell className="text-xs text-osprey-navy/60">{item.unit}</TableCell>
+                    <TableCell className="text-right font-mono text-xs">
+                      {formatCurrency(item.cost_price)}
+                    </TableCell>
+                    <TableCell className="text-right font-mono text-xs font-bold">
+                      {formatCurrency(item.current_stock * item.cost_price)}
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={item.current_stock <= item.minimum_stock ? 'pending' : 'active'} />
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
-  );
+  )
 }

@@ -1,105 +1,110 @@
-import {
-  DollarSign,
-  Users,
-  Tent,
-  Truck,
-  TrendingUp,
-  AlertCircle
-} from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Truck, Users, Package, AlertCircle } from 'lucide-react'
 
-export default function Home() {
+export default function DashboardPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Operations Dashboard</h1>
-        <p className="text-slate-500">Welcome to Osprey Command Center (Baobab Camps)</p>
+        <h2 className="text-3xl font-light text-osprey-navy">Dashboard</h2>
+        <p className="text-osprey-navy/60 mt-2">Overview of your operations today.</p>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-slate-500">Total Revenue (MTD)</h3>
-            <DollarSign className="text-emerald-500" size={20} />
-          </div>
-          <p className="text-2xl font-bold text-slate-900">$124,500</p>
-          <div className="flex items-center mt-2 text-xs text-emerald-600">
-            <TrendingUp size={14} className="mr-1" />
-            <span>+12% vs last month</span>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-slate-500">Guests In-House</h3>
-            <Tent className="text-blue-500" size={20} />
-          </div>
-          <p className="text-2xl font-bold text-slate-900">42 / 60</p>
-          <div className="text-xs text-slate-500 mt-2">70% Occupancy</div>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-slate-500">Active Staff</h3>
-            <Users className="text-purple-500" size={20} />
-          </div>
-          <p className="text-2xl font-bold text-slate-900">18</p>
-          <div className="text-xs text-slate-500 mt-2">3 on Leave</div>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-slate-500">Fleet Status</h3>
-            <Truck className="text-amber-500" size={20} />
-          </div>
-          <p className="text-2xl font-bold text-slate-900">8 / 12</p>
-          <div className="flex items-center mt-2 text-xs text-amber-600">
-            <AlertCircle size={14} className="mr-1" />
-            <span>2 Maintenance, 2 Blocked</span>
-          </div>
-        </div>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Vehicles</CardTitle>
+            <Truck className="h-4 w-4 text-osprey-navy/60" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">12</div>
+            <p className="text-xs text-osprey-navy/60">+2 from last month</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Trips</CardTitle>
+            <Truck className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">4</div>
+            <p className="text-xs text-osprey-navy/60">Currently on safari</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Staff on Duty</CardTitle>
+            <Users className="h-4 w-4 text-osprey-navy/60" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">24</div>
+            <p className="text-xs text-osprey-navy/60">Across 3 camps</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Low Stock Items</CardTitle>
+            <AlertCircle className="h-4 w-4 text-red-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">7</div>
+            <p className="text-xs text-osprey-navy/60">Requires attention</p>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Recent Activity / Alerts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm">
-          <h3 className="font-semibold text-slate-900 mb-4">Urgent Attention</h3>
-          <div className="space-y-3">
-            <div className="flex items-start gap-3 p-3 bg-red-50 text-red-700 rounded-md border border-red-100">
-              <AlertCircle size={18} className="mt-0.5" />
-              <div>
-                <p className="text-sm font-medium">Guest Allergy Alert</p>
-                <p className="text-xs opacity-90">Room 4 (Smith) - Severe Nut Allergy. Kitchen notified.</p>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+        <Card className="col-span-4">
+          <CardHeader>
+            <CardTitle>Recent Activity</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center">
+                <div className="ml-4 space-y-1">
+                  <p className="text-sm font-medium leading-none">Trip Started</p>
+                  <p className="text-sm text-osprey-navy/60">Vehicle T123 left for Serengeti</p>
+                </div>
+                <div className="ml-auto font-medium text-sm text-osprey-navy/60">Just now</div>
+              </div>
+              <div className="flex items-center">
+                <div className="ml-4 space-y-1">
+                  <p className="text-sm font-medium leading-none">Fuel Logged</p>
+                  <p className="text-sm text-osprey-navy/60">45L added to Land Cruiser T456</p>
+                </div>
+                <div className="ml-auto font-medium text-sm text-osprey-navy/60">2h ago</div>
+              </div>
+              <div className="flex items-center">
+                <div className="ml-4 space-y-1">
+                  <p className="text-sm font-medium leading-none">Stock Received</p>
+                  <p className="text-sm text-osprey-navy/60">Kitchen supplies at Main Camp</p>
+                </div>
+                <div className="ml-auto font-medium text-sm text-osprey-navy/60">5h ago</div>
               </div>
             </div>
-            <div className="flex items-start gap-3 p-3 bg-amber-50 text-amber-700 rounded-md border border-amber-100">
-              <Truck size={18} className="mt-0.5" />
-              <div>
-                <p className="text-sm font-medium">Vehicle Blocked</p>
-                <p className="text-xs opacity-90">T 888 AAA - Service Overdue by 1,000 km.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm">
-          <h3 className="font-semibold text-slate-900 mb-4">Recent Transactions</h3>
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex justify-between items-center text-sm border-b border-slate-100 pb-2 last:border-0">
-                <div>
-                  <p className="font-medium text-slate-900">Fuel Issued</p>
-                  <p className="text-slate-500 text-xs">Land Cruiser T 450 DFG</p>
+          </CardContent>
+        </Card>
+        <Card className="col-span-3">
+          <CardHeader>
+            <CardTitle>Fleet Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+             <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                   <span className="text-sm font-medium">Active</span>
+                   <span className="text-sm font-bold text-green-600">8</span>
                 </div>
-                <div className="text-right">
-                  <p className="font-medium text-slate-900">80 Liters</p>
-                  <p className="text-slate-500 text-xs">Today, 10:30 AM</p>
+                <div className="flex items-center justify-between">
+                   <span className="text-sm font-medium">Maintenance</span>
+                   <span className="text-sm font-bold text-yellow-600">2</span>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
+                <div className="flex items-center justify-between">
+                   <span className="text-sm font-medium">Available</span>
+                   <span className="text-sm font-bold text-osprey-navy">2</span>
+                </div>
+             </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
-  );
+  )
 }

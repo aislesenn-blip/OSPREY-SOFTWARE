@@ -1,38 +1,33 @@
-# PROJECT STRUCTURE
+# Project Structure
 
-## THE GOLDEN RULES (WARNING)
-1.  **CRITICAL:** `package.json` must ALWAYS be at the Root.
-2.  **CRITICAL:** `app/page.tsx` must be at `root/app/page.tsx`.
-3.  **DO NOT** nest this project inside `src/` or `osprey-os/` folders.
+The repository follows a flattened Next.js App Router structure.
 
-## Visual Tree
+## Root Directory
+- `app/`: Next.js Application routes and layouts.
+- `components/`: Reusable React components.
+  - `ui/`: Core design system components (Button, Card, Table).
+  - `layout/`: Shell components (Sidebar, Navbar).
+  - `auth/`: Authentication forms.
+- `lib/`: Utility functions and clients.
+  - `supabase.ts`: Supabase client initialization.
+  - `utils.ts`: Helper functions (formatting, classes).
+- `database/`: SQL schemas and migrations.
+- `types/`: TypeScript interface definitions.
+- `public/`: Static assets (images, fonts).
 
-```
-.
-├── app
-│   ├── dashboard      # Protected Application Routes (Sidebar Layout)
-│   ├── api            # API Routes
-│   ├── layout.tsx     # Root Layout (html/body)
-│   ├── page.tsx       # Login Page (Landing)
-│   └── not-found.tsx  # 404 Handler
-├── components         # Shared React Components
-├── lib                # Utilities (Supabase client, Helpers)
-├── public             # Static Assets (Images, Icons)
-├── types              # TypeScript Interfaces
-├── database           # SQL Schema
-├── package.json       # Project Dependencies (ROOT LEVEL)
-├── next.config.js     # Next.js Config (ROOT LEVEL)
-├── tsconfig.json      # TypeScript Config (ROOT LEVEL)
-└── PROJECT_STRUCTURE.md
-```
+## Key Files
+- `app/layout.tsx`: Root layout, font configuration.
+- `app/page.tsx`: Authentication entry point.
+- `app/dashboard/layout.tsx`: Authenticated shell with Sidebar.
+- `database/schema.sql`: Source of truth for database structure.
 
-## File Descriptions
+## Design System
+- **Colors**: Defined in `tailwind.config.ts` (Osprey Navy, Sand, Forest).
+- **Icons**: Lucide React.
+- **Typography**: Inter (via Google Fonts).
 
-*   **app/**: Contains the main application code (Next.js App Router).
-    *   **app/page.tsx**: The public Login page.
-    *   **app/dashboard/**: The authenticated area of the app. All routes here share the Dashboard Layout (Sidebar).
-*   **components/**: Reusable UI components (Buttons, Cards, Inputs).
-*   **lib/**: Backend logic and shared utilities.
-    *   `supabase.ts`: The Supabase client initialization.
-*   **public/**: Static files served directly (e.g., logos).
-*   **database/**: Contains `schema.sql` for setting up the Supabase database.
+## Conventions
+- **Multi-tenancy**: Every database query must filter by `organization_id`.
+- **RLS**: Row Level Security is enabled on all tables.
+- **Strict Mode**: TypeScript strict mode is enabled.
+- **Client Components**: Use `'use client'` at the top of files using hooks.
