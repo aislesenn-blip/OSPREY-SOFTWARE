@@ -1,32 +1,32 @@
-import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import { clsx } from "clsx";
-import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
+import './globals.css'
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import { LanguageProvider } from '@/lib/i18n'
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
 export const metadata: Metadata = {
-  title: "OSPREY",
-  description: "Universal Enterprise Operating System",
-  manifest: "/manifest.json",
-};
-
-export const viewport: Viewport = {
-  themeColor: "#0F172A",
-};
+  title: 'Kijiko - Save Food, Save Money',
+  description: "Tanzania's food surplus marketplace. Good food at better prices.",
+  manifest: '/manifest.json',
+  themeColor: '#E85D04',
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0',
+}
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="en">
-      <body className={clsx(inter.variable, "font-sans antialiased min-h-screen")}>
-        <ServiceWorkerRegister />
-        {children}
+      <body className={`${inter.variable} font-sans`}>
+        <LanguageProvider>
+          <div className="mx-auto min-h-screen max-w-md bg-white shadow-xl flex flex-col relative overflow-hidden">
+            {children}
+          </div>
+        </LanguageProvider>
       </body>
     </html>
-  );
+  )
 }

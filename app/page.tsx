@@ -1,129 +1,83 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { supabase } from "@/lib/supabase";
-import { useRouter } from "next/navigation";
+import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Image from 'next/image'
+import { Button } from '@/components/Button'
+import { useLanguage } from '@/lib/i18n'
 
-export default function AuthPage() {
-  const [isLogin, setIsLogin] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [companyName, setCompanyName] = useState("");
-  const [industryType, setIndustryType] = useState("COMPANY");
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
+export default function Onboarding() {
+  const [step, setStep] = useState(1)
+  const { language, setLanguage, t } = useLanguage()
+  const router = useRouter()
 
-  const handleAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) throw error;
-        router.push("/dashboard");
-      } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              company_name: companyName,
-              industry_type: industryType,
-            },
-          },
-        });
-        if (error) throw error;
-        alert("Check your email for the confirmation link! Your organization environment is being auto-configured.");
-      }
-    } catch (error: any) {
-      alert(error.message);
-    } finally {
-      setLoading(false);
+  const handleRoleSelection = (role: 'customer' | 'merchant') => {
+    if (role === 'customer') {
+      router.push('/home')
+    } else {
+      router.push('/merchant')
     }
-  };
+  }
 
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-navy text-sand">
-      <div className="z-10 max-w-md w-full items-center justify-between font-mono text-sm">
-        <h1 className="text-4xl font-bold mb-8 text-center text-gold">OSPREY</h1>
+  if (step === 1) {
+    return (
+      <div className="flex-1 flex flex-col justify-center px-6 pb-20 bg-brand-orange text-white">
+        <div className="text-center mb-12">
+          <h1 className="text-5xl font-extrabold mb-4 tracking-tight">KIJIKO</h1>
+          <p className="text-xl font-medium opacity-90">Save Food, Save Money.</p>
+        </div>
 
-        <div className="bg-sand text-navy p-8 rounded-lg shadow-lg">
-            <h2 className="text-2xl font-bold mb-6">{isLogin ? "Login" : "Register Organization"}</h2>
+        <div className="bg-white rounded-2xl p-6 text-brand-dark shadow-xl">
+          <h2 className="text-2xl font-bold mb-6 text-center">Choose your language<br/><span className="text-lg opacity-70">Chagua lugha yako</span></h2>
 
-            <form onSubmit={handleAuth} className="space-y-4">
-                {!isLogin && (
-                    <>
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Organization Name</label>
-                            <input
-                                type="text"
-                                required
-                                className="w-full p-2 border border-gray-300 rounded"
-                                value={companyName}
-                                onChange={(e) => setCompanyName(e.target.value)}
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Organization Type</label>
-                            <select
-                                className="w-full p-2 border border-gray-300 rounded"
-                                value={industryType}
-                                onChange={(e) => setIndustryType(e.target.value)}
-                            >
-                                <option value="COMPANY">Company / Enterprise</option>
-                                <option value="UNIVERSITY">University / Education</option>
-                                <option value="NGO">NGO / Non-Profit</option>
-                                <option value="GOVERNMENT">Government / Public Sector</option>
-                            </select>
-                        </div>
-                    </>
-                )}
-
-                <div>
-                    <label className="block text-sm font-medium mb-1">Email</label>
-                    <input
-                        type="email"
-                        required
-                        className="w-full p-2 border border-gray-300 rounded"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium mb-1">Password</label>
-                    <input
-                        type="password"
-                        required
-                        className="w-full p-2 border border-gray-300 rounded"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
-                </div>
-
-                <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-forest text-white p-2 rounded hover:bg-opacity-90 transition-colors"
-                >
-                    {loading ? "Processing..." : (isLogin ? "Sign In" : "Create Organization")}
-                </button>
-            </form>
-
-            <div className="mt-4 text-center text-sm">
-                <button
-                    onClick={() => setIsLogin(!isLogin)}
-                    className="text-navy underline hover:text-gold"
-                >
-                    {isLogin ? "Need to register a new organization?" : "Already have an account?"}
-                </button>
-            </div>
+          <div className="space-y-4">
+            <button
+              onClick={() => { setLanguage('en'); setStep(2) }}
+              className="w-full py-4 border-2 border-brand-gray rounded-xl font-bold text-lg hover:border-brand-orange hover:bg-orange-50 transition-colors"
+            >
+              English
+            </button>
+            <button
+              onClick={() => { setLanguage('sw'); setStep(2) }}
+              className="w-full py-4 border-2 border-brand-gray rounded-xl font-bold text-lg hover:border-brand-orange hover:bg-orange-50 transition-colors"
+            >
+              Kiswahili
+            </button>
+          </div>
         </div>
       </div>
-    </main>
-  );
+    )
+  }
+
+  return (
+    <div className="flex-1 flex flex-col px-6 pt-12 pb-8 bg-brand-light">
+      <div className="flex-1 flex flex-col items-center justify-center text-center">
+        <div className="w-full aspect-square relative mb-8 max-w-[280px]">
+          <Image
+            src="https://images.unsplash.com/photo-1594212720448-b4c48f8b8943?auto=format&fit=crop&q=80&w=800"
+            alt="Delicious food"
+            fill
+            className="object-cover rounded-full shadow-2xl border-4 border-white"
+            priority
+          />
+        </div>
+
+        <h1 className="text-3xl font-extrabold text-brand-dark mb-4 leading-tight">
+          {t('onboarding.title')}
+        </h1>
+        <p className="text-lg text-brand-muted mb-12 max-w-[280px]">
+          {t('onboarding.subtitle')}
+        </p>
+
+        <div className="w-full space-y-4">
+          <Button fullWidth size="lg" onClick={() => handleRoleSelection('customer')}>
+            {t('onboarding.btn.customer')}
+          </Button>
+          <Button fullWidth size="lg" variant="outline" onClick={() => handleRoleSelection('merchant')}>
+            {t('onboarding.btn.merchant')}
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
 }

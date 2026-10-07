@@ -1,20 +1,20 @@
 
-> osprey@0.1.0 dev
-> next dev
+> osprey@0.1.0 start
+> next start
 
    ▲ Next.js 14.1.0
    - Local:        http://localhost:3000
 
- ✓ Ready in 1815ms
- ○ Compiling /dashboard ...
- ✓ Compiled /dashboard in 7.7s (502 modules)
- ○ Compiling /not-found ...
- ✓ Compiled /not-found in 1314ms (496 modules)
- ○ Compiling /dashboard/finance/journals ...
- ✓ Compiled /dashboard/finance/journals in 1195ms (582 modules)
- ✓ Compiled /dashboard/budget in 284ms (596 modules)
- ✓ Compiled /dashboard/hr/employees in 259ms (604 modules)
- ✓ Compiled in 593ms (615 modules)
- ✓ Compiled in 3.8s (303 modules)
- ✓ Compiled in 421ms (289 modules)
- ✓ Compiled in 377ms (303 modules)
+ ✓ Ready in 483ms
+ ⚠ Unsupported metadata themeColor is configured in metadata export in /food/1?_rsc=1jl4t. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /food/1?_rsc=1jl4t. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata themeColor is configured in metadata export in /checkout/1?_rsc=o0m08. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /checkout/1?_rsc=o0m08. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata themeColor is configured in metadata export in /order-confirmation/1?qty=2&_rsc=1rlv1. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ⚠ Unsupported metadata viewport is configured in metadata export in /order-confirmation/1?qty=2&_rsc=1rlv1. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
