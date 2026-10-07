@@ -9,15 +9,20 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        navy: "#0F172A",
-        sand: "#FDFBF7",
-        forest: "#1B4D3E",
-        fog: "#F3F4F6",
-        gold: "#C5A059",
-        "soft-gray": "#F3F4F6", // Explicitly named for the theme requirement
+        brand: {
+          orange: "#E85D04", // Energetic, warm, friendly
+          orangeLight: "#FFBA08",
+          green: "#2D6A4F", // Environmentally conscious but not overwhelming
+          greenLight: "#40916C",
+          dark: "#14213D",
+          light: "#F8F9FA",
+          gray: "#E5E5E5",
+          text: "#212529",
+          muted: "#6C757D"
+        },
       },
       fontFamily: {
-        sans: ["var(--font-inter)"],
+        sans: ["var(--font-inter)", "sans-serif"],
       },
     },
   },

@@ -2,11 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --font-inter: 'Inter', sans-serif;
+@layer base {
+  html,
+  body {
+    @apply bg-brand-light text-brand-text antialiased h-full w-full;
+  }
+
+  #__next {
+    @apply h-full w-full;
+  }
 }
 
-body {
-  background-color: theme('colors.sand');
-  color: theme('colors.navy');
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }
