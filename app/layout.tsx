@@ -1,31 +1,35 @@
-import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import { clsx } from "clsx";
-import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
+import type { Metadata, Viewport } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
+import { LanguageProvider } from '@/lib/LanguageContext';
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "OSPREY",
-  description: "Universal Enterprise Operating System",
-  manifest: "/manifest.json",
+  title: 'Kijiko',
+  description: 'Save good food. Save money.',
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0F172A",
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
-      <body className={clsx(inter.variable, "font-sans antialiased min-h-screen")}>
-        <ServiceWorkerRegister />
-        {children}
+      <body className={`${inter.className} antialiased text-gray-900 bg-gray-50`}>
+        <LanguageProvider>
+          <div className="mx-auto max-w-md min-h-screen bg-white shadow-xl relative pb-20">
+            {children}
+          </div>
+        </LanguageProvider>
       </body>
     </html>
   );
