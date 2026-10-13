@@ -5,16 +5,4 @@
    ▲ Next.js 14.1.0
    - Local:        http://localhost:3000
 
- ✓ Ready in 483ms
- ⚠ Unsupported metadata themeColor is configured in metadata export in /food/1?_rsc=1jl4t. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /food/1?_rsc=1jl4t. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata themeColor is configured in metadata export in /checkout/1?_rsc=o0m08. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /checkout/1?_rsc=o0m08. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata themeColor is configured in metadata export in /order-confirmation/1?qty=2&_rsc=1rlv1. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /order-confirmation/1?qty=2&_rsc=1rlv1. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ ✓ Ready in 462ms

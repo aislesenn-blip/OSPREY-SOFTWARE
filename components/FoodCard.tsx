@@ -1,8 +1,7 @@
 import React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { FoodItem, formatTZS } from '@/lib/data'
-import { MapPin, Clock } from 'lucide-react'
+import { FoodItem } from '@/lib/data'
 
 type FoodCardProps = {
   item: FoodItem
@@ -26,25 +25,15 @@ export function FoodCard({ item, t }: FoodCardProps) {
         </div>
 
         <div className="p-4">
-          <div className="flex justify-between items-start mb-2">
+          <div className="flex justify-between items-center">
             <div>
               <h3 className="font-bold text-lg text-brand-text leading-tight">{item.name}</h3>
-              <p className="text-sm text-brand-muted">{item.businessName}</p>
+              <p className="text-sm text-brand-muted">{item.category}</p>
             </div>
             <div className="text-right">
-              <p className="font-bold text-brand-orange text-lg">{formatTZS(item.kijikoPrice)}</p>
-              <p className="text-xs text-brand-muted line-through">{formatTZS(item.originalPrice)}</p>
-            </div>
-          </div>
-
-          <div className="flex items-center text-xs text-brand-muted mt-3 space-x-4">
-            <div className="flex items-center">
-              <Clock size={14} className="mr-1" />
-              <span>{item.pickupStart} - {item.pickupEnd}</span>
-            </div>
-            <div className="flex items-center">
-              <MapPin size={14} className="mr-1" />
-              <span>{item.distance}</span>
+              <span className="bg-orange-100 text-brand-orange px-3 py-1 rounded-full text-sm font-bold">
+                1 Meal
+              </span>
             </div>
           </div>
         </div>

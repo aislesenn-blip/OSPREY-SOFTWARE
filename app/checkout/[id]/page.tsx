@@ -3,8 +3,8 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { ChevronLeft, CheckCircle2 } from 'lucide-react'
-import { mockFoodItems, formatTZS } from '@/lib/data'
+import { ChevronLeft, CheckCircle2, MapPin, Clock } from 'lucide-react'
+import { mockFoodItems, mockPickupPoints, mockTimeWindows } from '@/lib/data'
 import { useLanguage } from '@/lib/i18n'
 import { Button } from '@/components/Button'
 
@@ -12,28 +12,20 @@ export default function Checkout({ params }: { params: { id: string } }) {
   const router = useRouter()
   const { t } = useLanguage()
   const [quantity, setQuantity] = useState(1)
-  const [paymentMethod, setPaymentMethod] = useState('mpesa')
+  const [pickupPoint, setPickupPoint] = useState(mockPickupPoints[0].id)
+  const [timeWindow, setTimeWindow] = useState(mockTimeWindows[0].id)
   const [isProcessing, setIsProcessing] = useState(false)
 
   const item = mockFoodItems.find(f => f.id === params.id)
 
   if (!item) return <div className="p-8 text-center">Food not found</div>
 
-  const total = item.kijikoPrice * quantity
-
-  const handlePayment = () => {
+  const handleConfirm = () => {
     setIsProcessing(true)
     setTimeout(() => {
       router.push(`/order-confirmation/${item.id}?qty=${quantity}`)
     }, 1500)
   }
-
-  const paymentOptions = [
-    { id: 'mpesa', name: 'M-Pesa', color: 'bg-[#5CB85C]', logo: 'M' },
-    { id: 'tigopesa', name: 'Tigo Pesa', color: 'bg-[#0033A0]', logo: 'T' },
-    { id: 'airtel', name: 'Airtel Money', color: 'bg-[#FF0000]', logo: 'A' },
-    { id: 'halopesa', name: 'HaloPesa', color: 'bg-[#FF6A13]', logo: 'H' },
-  ]
 
   return (
     <div className="flex-1 flex flex-col bg-brand-light pb-24 h-screen overflow-y-auto scrollbar-hide">
@@ -55,8 +47,7 @@ export default function Checkout({ params }: { params: { id: string } }) {
           </div>
           <div className="flex-1">
             <h2 className="font-bold text-brand-dark">{item.name}</h2>
-            <p className="text-sm text-brand-muted mb-2">{item.businessName}</p>
-            <p className="font-bold text-brand-orange">{formatTZS(item.kijikoPrice)}</p>
+            <p className="text-sm text-brand-muted mb-2">{item.category}</p>
           </div>
         </div>
 
@@ -76,23 +67,50 @@ export default function Checkout({ params }: { params: { id: string } }) {
           </div>
         </div>
 
-        {/* Payment Methods */}
+        {/* Pickup Location */}
         <div>
-          <h3 className="font-bold text-brand-dark mb-3 px-1">{t('checkout.pay_with')}</h3>
+          <h3 className="font-bold text-brand-dark mb-3 px-1 flex items-center">
+            <MapPin size={18} className="mr-2 text-brand-orange" />
+            {t('checkout.location')}
+          </h3>
           <div className="space-y-3">
-            {paymentOptions.map((option) => (
+            {mockPickupPoints.map((point) => (
               <div
-                key={option.id}
-                onClick={() => setPaymentMethod(option.id)}
-                className={`bg-white p-4 rounded-xl border-2 flex items-center cursor-pointer transition-colors ${
-                  paymentMethod === option.id ? 'border-brand-orange shadow-sm' : 'border-transparent border-gray-100'
+                key={point.id}
+                onClick={() => setPickupPoint(point.id)}
+                className={`bg-white p-4 rounded-xl border-2 cursor-pointer transition-colors ${
+                  pickupPoint === point.id ? 'border-brand-orange shadow-sm' : 'border-transparent border-gray-100'
                 }`}
               >
-                <div className={`w-10 h-10 rounded-lg ${option.color} flex items-center justify-center text-white font-bold mr-4`}>
-                  {option.logo}
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="font-bold text-brand-dark">{point.name}</p>
+                    <p className="text-sm text-brand-muted">{point.address}</p>
+                  </div>
+                  {pickupPoint === point.id && <CheckCircle2 className="text-brand-orange" size={20} />}
                 </div>
-                <span className="flex-1 font-medium text-brand-dark">{option.name}</span>
-                {paymentMethod === option.id && <CheckCircle2 className="text-brand-orange" size={20} />}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Time Window */}
+        <div>
+          <h3 className="font-bold text-brand-dark mb-3 px-1 flex items-center">
+            <Clock size={18} className="mr-2 text-brand-orange" />
+            {t('checkout.time')}
+          </h3>
+          <div className="space-y-3">
+            {mockTimeWindows.map((tw) => (
+              <div
+                key={tw.id}
+                onClick={() => setTimeWindow(tw.id)}
+                className={`bg-white p-4 rounded-xl border-2 flex justify-between items-center cursor-pointer transition-colors ${
+                  timeWindow === tw.id ? 'border-brand-orange shadow-sm' : 'border-transparent border-gray-100'
+                }`}
+              >
+                <span className="font-medium text-brand-dark">{tw.start} - {tw.end}</span>
+                {timeWindow === tw.id && <CheckCircle2 className="text-brand-orange" size={20} />}
               </div>
             ))}
           </div>
@@ -102,11 +120,11 @@ export default function Checkout({ params }: { params: { id: string } }) {
       {/* Fixed Bottom Action */}
       <div className="fixed bottom-0 w-full max-w-md bg-white border-t border-brand-gray p-4 z-50">
         <div className="flex justify-between items-center mb-4">
-          <span className="font-bold text-brand-dark">{t('checkout.total')}</span>
-          <span className="text-2xl font-extrabold text-brand-dark">{formatTZS(total)}</span>
+          <span className="font-bold text-brand-dark">Cost</span>
+          <span className="text-2xl font-extrabold text-brand-dark">{quantity} Meal{quantity > 1 ? 's' : ''}</span>
         </div>
-        <Button fullWidth size="lg" onClick={handlePayment} disabled={isProcessing}>
-          {isProcessing ? 'Processing...' : `${t('checkout.pay_btn')} ${formatTZS(total)}`}
+        <Button fullWidth size="lg" onClick={handleConfirm} disabled={isProcessing}>
+          {isProcessing ? 'Processing...' : t('checkout.confirm_btn')}
         </Button>
       </div>
     </div>

@@ -13,40 +13,32 @@ type Translations = {
 
 const translations: Translations = {
   "onboarding.title": {
-    en: "Save good food. Save money.",
-    sw: "Okoa chakula kizuri. Okoa pesa."
+    en: "Campus food, sorted.",
+    sw: "Chakula cha chuo, kimeshughulikiwa."
   },
   "onboarding.subtitle": {
-    en: "Get quality food at half price from your favorite spots.",
-    sw: "Pata chakula kizuri kwa nusu bei kutoka maeneo unayopenda."
+    en: "Fresh, filling meals ready for you on campus. Subscribe and save.",
+    sw: "Chakula kipya na kishibisho tayari kwa ajili yako chuoni. Jiunge na uokoe."
   },
-  "onboarding.btn.customer": {
-    en: "I'm a Customer",
-    sw: "Mimi ni Mteja"
-  },
-  "onboarding.btn.merchant": {
-    en: "I'm a Merchant",
-    sw: "Mimi ni Muuzaji"
+  "onboarding.btn.start": {
+    en: "Get Started",
+    sw: "Anza Sasa"
   },
   "home.title": {
-    en: "Nearby Food",
-    sw: "Chakula Karibu"
-  },
-  "home.get_this": {
-    en: "Get This",
-    sw: "Chukua Hiki"
+    en: "Available Meals",
+    sw: "Chakula Kilichopo"
   },
   "nav.home": {
-    en: "Home",
-    sw: "Nyumbani"
+    en: "Meals",
+    sw: "Chakula"
   },
-  "nav.discover": {
-    en: "Discover",
-    sw: "Gundua"
+  "nav.packages": {
+    en: "Packages",
+    sw: "Vifurushi"
   },
   "nav.orders": {
-    en: "Orders",
-    sw: "Oda"
+    en: "Pickups",
+    sw: "Vyakuchukua"
   },
   "nav.profile": {
     en: "Profile",
@@ -57,88 +49,60 @@ const translations: Translations = {
     sw: "vipo"
   },
   "food.pickup": {
-    en: "Pickup",
-    sw: "Kuchukua"
-  },
-  "food.you_save": {
-    en: "You save",
-    sw: "Umeokoa"
+    en: "Campus Pickup",
+    sw: "Kuchukua Chuoni"
   },
   "food.what_you_get": {
     en: "What you're getting",
     sw: "Utakachopata"
   },
-  "food.reserve": {
-    en: "Reserve for",
-    sw: "Weka oda kwa"
+  "food.select": {
+    en: "Select Meal",
+    sw: "Chagua Chakula"
   },
   "checkout.title": {
-    en: "Checkout",
-    sw: "Lipa"
+    en: "Redeem Meal",
+    sw: "Chukua Chakula"
   },
-  "checkout.quantity": {
-    en: "Quantity",
-    sw: "Idadi"
+  "checkout.location": {
+    en: "Pickup Point",
+    sw: "Sehemu ya Kuchukulia"
   },
-  "checkout.total": {
-    en: "Total",
-    sw: "Jumla"
+  "checkout.time": {
+    en: "Pickup Time",
+    sw: "Muda wa Kuchukua"
   },
-  "checkout.pay_with": {
-    en: "Pay with",
-    sw: "Lipa na"
-  },
-  "checkout.pay_btn": {
-    en: "Pay Now",
-    sw: "Lipa Sasa"
+  "checkout.confirm_btn": {
+    en: "Confirm Order",
+    sw: "Thibitisha Oda"
   },
   "order.success": {
-    en: "You're all set!",
-    sw: "Kila kitu kiko sawa!"
+    en: "Meal Confirmed!",
+    sw: "Chakula Kimethibitishwa!"
   },
   "order.pickup_code": {
     en: "Pickup Code",
     sw: "Namba ya Kuchukulia"
   },
-  "merchant.dashboard": {
-    en: "Dashboard",
-    sw: "Dashibodi"
+  "packages.title": {
+    en: "Meal Packages",
+    sw: "Vifurushi Vya Chakula"
   },
-  "merchant.create": {
-    en: "Create Listing",
-    sw: "Weka Oda Mpya"
+  "packages.subtitle": {
+    en: "Buy in advance, save money, and never worry about your next meal.",
+    sw: "Nunua mapema, okoa pesa, na usijali tena kuhusu mlo wako ujao."
   },
-  "merchant.orders": {
-    en: "Orders",
-    sw: "Oda"
+  "packages.buy": {
+    en: "Buy Package",
+    sw: "Nunua Kifurushi"
   },
-  "merchant.sales_today": {
-    en: "Sales Today",
-    sw: "Mauzo ya Leo"
+  "packages.meals": {
+    en: "meals",
+    sw: "mlo"
   },
-  "merchant.revenue_recovered": {
-    en: "Revenue Recovered",
-    sw: "Mapato Yaliyoungwa"
-  },
-  "merchant.what_selling": {
-    en: "What are you selling?",
-    sw: "Unauza nini?"
-  },
-  "merchant.how_many": {
-    en: "How many?",
-    sw: "Vingapi?"
-  },
-  "merchant.original_price": {
-    en: "Original price",
-    sw: "Bei ya zamani"
-  },
-  "merchant.kijiko_price": {
-    en: "Kijiko price",
-    sw: "Bei ya Kijiko"
-  },
-  "merchant.post_listing": {
-    en: "Post Listing",
-    sw: "Weka Oda"
+  "profile.balance": {
+    en: "Meal Balance",
+    sw: "Salio la Mlo"
   }
 }
 
@@ -159,7 +123,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    const saved = localStorage.getItem('kijiko-lang') as Language
+    const saved = localStorage.getItem('whemsy-lang') as Language
     if (saved && (saved === 'en' || saved === 'sw')) {
       setLanguage(saved)
     }
@@ -168,7 +132,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   const handleSetLanguage = (lang: Language) => {
     setLanguage(lang)
-    localStorage.setItem('kijiko-lang', lang)
+    localStorage.setItem('whemsy-lang', lang)
   }
 
   const t = (key: string): string => {

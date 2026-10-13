@@ -3,7 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Compass, ClipboardList, User } from 'lucide-react'
+import { Utensils, PackageSearch, ClipboardList, User } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n'
 
 export function BottomNav() {
@@ -11,8 +11,8 @@ export function BottomNav() {
   const { t } = useLanguage()
 
   const navItems = [
-    { name: t('nav.home'), path: '/home', icon: Home },
-    { name: t('nav.discover'), path: '/discover', icon: Compass },
+    { name: t('nav.home'), path: '/home', icon: Utensils },
+    { name: t('nav.packages'), path: '/packages', icon: PackageSearch },
     { name: t('nav.orders'), path: '/orders', icon: ClipboardList },
     { name: t('nav.profile'), path: '/profile', icon: User },
   ]

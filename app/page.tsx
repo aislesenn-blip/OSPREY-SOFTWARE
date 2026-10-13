@@ -11,20 +11,16 @@ export default function Onboarding() {
   const { language, setLanguage, t } = useLanguage()
   const router = useRouter()
 
-  const handleRoleSelection = (role: 'customer' | 'merchant') => {
-    if (role === 'customer') {
-      router.push('/home')
-    } else {
-      router.push('/merchant')
-    }
+  const handleStart = () => {
+    router.push('/home')
   }
 
   if (step === 1) {
     return (
       <div className="flex-1 flex flex-col justify-center px-6 pb-20 bg-brand-orange text-white">
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-extrabold mb-4 tracking-tight">KIJIKO</h1>
-          <p className="text-xl font-medium opacity-90">Save Food, Save Money.</p>
+          <h1 className="text-5xl font-extrabold mb-4 tracking-tight">WHEMSY</h1>
+          <p className="text-xl font-medium opacity-90">Campus Food Subscription.</p>
         </div>
 
         <div className="bg-white rounded-2xl p-6 text-brand-dark shadow-xl">
@@ -70,11 +66,8 @@ export default function Onboarding() {
         </p>
 
         <div className="w-full space-y-4">
-          <Button fullWidth size="lg" onClick={() => handleRoleSelection('customer')}>
-            {t('onboarding.btn.customer')}
-          </Button>
-          <Button fullWidth size="lg" variant="outline" onClick={() => handleRoleSelection('merchant')}>
-            {t('onboarding.btn.merchant')}
+          <Button fullWidth size="lg" onClick={handleStart}>
+            {t('onboarding.btn.start')}
           </Button>
         </div>
       </div>

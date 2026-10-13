@@ -1,16 +1,22 @@
 import './globals.css'
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import { LanguageProvider } from '@/lib/i18n'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
 export const metadata: Metadata = {
-  title: 'Kijiko - Save Food, Save Money',
-  description: "Tanzania's food surplus marketplace. Good food at better prices.",
+  title: 'Whemsy - Campus Food Subscription',
+  description: "Fresh, filling meals ready for you on campus. Subscribe and save.",
   manifest: '/manifest.json',
+}
+
+export const viewport: Viewport = {
   themeColor: '#E85D04',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 }
 
 export default function RootLayout({
