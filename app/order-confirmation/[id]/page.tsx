@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { CheckCircle2, Clock, MapPin } from 'lucide-react'
-import { mockFoodItems } from '@/lib/data'
+import { mockFoodItems, mockPickupPoints, mockTimeWindows } from '@/lib/data'
 import { useLanguage } from '@/lib/i18n'
 import { Button } from '@/components/Button'
 
@@ -16,10 +16,14 @@ export default function OrderConfirmation({ params }: { params: { id: string } }
   const item = mockFoodItems.find(f => f.id === params.id)
   const qty = searchParams.get('qty') || '1'
 
+  // Use mock selections for confirmation page
+  const pickupPoint = mockPickupPoints[0]
+  const timeWindow = mockTimeWindows[0]
+
   useEffect(() => {
-    // Generate a random 4 digit code like KJ-XXXX
+    // Generate a random 4 digit code like WH-XXXX
     const code = Math.floor(1000 + Math.random() * 9000)
-    setPickupCode(`KJ-${code}`)
+    setPickupCode(`WH-${code}`)
   }, [])
 
   if (!item) return <div className="p-8 text-center">Order not found</div>
@@ -49,19 +53,20 @@ export default function OrderConfirmation({ params }: { params: { id: string } }
 
           <div className="py-2">
             <h2 className="font-bold text-xl text-brand-dark mb-1">{item.name} <span className="text-brand-orange">× {qty}</span></h2>
-            <p className="text-brand-muted font-medium mb-4">{item.businessName}</p>
+            <p className="text-brand-muted font-medium mb-4">Whemsy Central Kitchen</p>
 
             <div className="space-y-3">
               <div className="flex items-start">
                 <Clock className="text-brand-muted mr-3 mt-0.5" size={18} />
                 <div>
-                  <p className="font-semibold text-brand-dark">Today, {item.pickupStart} – {item.pickupEnd}</p>
+                  <p className="font-semibold text-brand-dark">Today, {timeWindow.start} – {timeWindow.end}</p>
                 </div>
               </div>
               <div className="flex items-start">
                 <MapPin className="text-brand-muted mr-3 mt-0.5" size={18} />
                 <div>
-                  <p className="text-brand-dark">{item.address}</p>
+                  <p className="text-brand-dark font-semibold">{pickupPoint.name}</p>
+                  <p className="text-brand-muted text-sm">{pickupPoint.address}</p>
                 </div>
               </div>
             </div>
@@ -69,7 +74,7 @@ export default function OrderConfirmation({ params }: { params: { id: string } }
         </div>
 
         <p className="text-center text-sm text-brand-muted mb-8 max-w-[250px]">
-          Show this code to the merchant when you arrive to pick up your food.
+          Show this code at the campus pickup point to collect your meal.
         </p>
 
       </div>

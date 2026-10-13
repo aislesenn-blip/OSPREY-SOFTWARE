@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import Image from 'next/image'
 import { BottomNav } from '@/components/BottomNav'
-import { mockOrders, formatTZS } from '@/lib/data'
+import { mockOrders } from '@/lib/data'
 import { useLanguage } from '@/lib/i18n'
 
 export default function Orders() {
@@ -49,8 +49,10 @@ export default function Orders() {
                   </div>
                   <div className="flex-1">
                     <h3 className="font-bold text-brand-dark leading-tight">{order.foodItem.name}</h3>
-                    <p className="text-sm text-brand-muted">{order.foodItem.businessName}</p>
-                    <p className="text-sm font-semibold text-brand-orange mt-1">{formatTZS(order.totalPrice)}</p>
+                    <p className="text-sm text-brand-muted">{order.pickupPoint.name}</p>
+                    <p className="text-sm font-semibold text-brand-orange mt-1">
+                      {new Date(order.date).toLocaleDateString()} • {order.timeWindow.start} - {order.timeWindow.end}
+                    </p>
                   </div>
                 </div>
 
@@ -78,7 +80,7 @@ export default function Orders() {
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
               <span className="text-2xl">📋</span>
             </div>
-            <p className="font-medium">No {tab} orders</p>
+            <p className="font-medium">No {tab} pickups</p>
           </div>
         )}
       </div>

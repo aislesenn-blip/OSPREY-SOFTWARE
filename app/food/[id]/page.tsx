@@ -4,8 +4,8 @@ import React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ChevronLeft, MapPin, Clock, Info } from 'lucide-react'
-import { mockFoodItems, formatTZS } from '@/lib/data'
+import { ChevronLeft, Info, Utensils } from 'lucide-react'
+import { mockFoodItems } from '@/lib/data'
 import { useLanguage } from '@/lib/i18n'
 import { Button } from '@/components/Button'
 
@@ -44,7 +44,7 @@ export default function FoodDetail({ params }: { params: { id: string } }) {
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
         <div className="absolute bottom-4 left-4 text-white">
           <h1 className="text-3xl font-extrabold mb-1">{item.name}</h1>
-          <p className="text-lg font-medium opacity-90">{item.businessName}</p>
+          <p className="text-lg font-medium opacity-90">{item.category}</p>
         </div>
       </div>
 
@@ -67,36 +67,13 @@ export default function FoodDetail({ params }: { params: { id: string } }) {
           </ul>
         </div>
 
-        {/* Pricing */}
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-brand-gray flex justify-between items-center">
-          <div>
-            <p className="text-sm text-brand-muted line-through">{formatTZS(item.originalPrice)}</p>
-            <p className="text-2xl font-extrabold text-brand-orange">{formatTZS(item.kijikoPrice)}</p>
-          </div>
-          <div className="text-right">
-            <p className="text-xs text-brand-muted mb-1">{t('food.you_save')}</p>
-            <div className="bg-green-100 text-brand-green px-3 py-1 rounded-full text-sm font-bold">
-              {formatTZS(item.originalPrice - item.kijikoPrice)}
-            </div>
-          </div>
-        </div>
-
-        {/* Pickup Details */}
+        {/* Info */}
         <div className="bg-white rounded-xl p-5 shadow-sm border border-brand-gray space-y-4">
           <div className="flex items-start">
-            <Clock className="text-brand-orange mr-3 mt-0.5" size={20} />
+            <Utensils className="text-brand-orange mr-3 mt-0.5" size={20} />
             <div>
-              <p className="font-bold text-brand-dark">{t('food.pickup')}</p>
-              <p className="text-brand-text">Today, {item.pickupStart} – {item.pickupEnd}</p>
-            </div>
-          </div>
-          <div className="w-full h-px bg-gray-100 my-2"></div>
-          <div className="flex items-start">
-            <MapPin className="text-brand-orange mr-3 mt-0.5" size={20} />
-            <div>
-              <p className="font-bold text-brand-dark">{item.businessName}</p>
-              <p className="text-brand-text text-sm">{item.address}</p>
-              <p className="text-brand-muted text-xs mt-1">{item.distance} away</p>
+              <p className="font-bold text-brand-dark">Prepared Fresh</p>
+              <p className="text-brand-text text-sm">By Whemsy Central Kitchen</p>
             </div>
           </div>
         </div>
@@ -106,10 +83,11 @@ export default function FoodDetail({ params }: { params: { id: string } }) {
       <div className="fixed bottom-0 w-full max-w-md bg-white border-t border-brand-gray p-4 z-50">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-brand-muted">{item.quantity} {t('food.available')}</span>
+          <span className="font-bold text-brand-orange">1 Meal</span>
         </div>
         <Link href={`/checkout/${item.id}`} className="w-full">
           <Button fullWidth size="lg">
-            {t('food.reserve')} {formatTZS(item.kijikoPrice)}
+            {t('food.select')}
           </Button>
         </Link>
       </div>

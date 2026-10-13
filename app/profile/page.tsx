@@ -3,10 +3,14 @@
 import React from 'react'
 import { BottomNav } from '@/components/BottomNav'
 import { useLanguage } from '@/lib/i18n'
-import { User, Settings, CreditCard, HelpCircle, LogOut } from 'lucide-react'
+import { User, Settings, CreditCard, HelpCircle, LogOut, Utensils } from 'lucide-react'
+import Link from 'next/link'
 
 export default function Profile() {
   const { t, language, setLanguage } = useLanguage()
+
+  // Mock balance
+  const mealBalance = 4
 
   return (
     <div className="flex-1 flex flex-col bg-brand-light pb-20 overflow-y-auto scrollbar-hide h-screen">
@@ -28,6 +32,20 @@ export default function Profile() {
 
       {/* Content */}
       <div className="p-4 space-y-6">
+
+        {/* Meal Balance Card */}
+        <div className="bg-brand-orange rounded-xl shadow-md p-5 text-white flex justify-between items-center">
+          <div>
+            <p className="opacity-90 font-medium mb-1">{t('profile.balance')}</p>
+            <div className="flex items-baseline space-x-2">
+              <span className="text-4xl font-black">{mealBalance}</span>
+              <span className="font-medium opacity-90">{t('packages.meals')}</span>
+            </div>
+          </div>
+          <Link href="/packages" className="bg-white text-brand-orange px-4 py-2 rounded-full font-bold text-sm shadow-sm hover:bg-orange-50 transition-colors">
+            Get More
+          </Link>
+        </div>
 
         {/* Settings Group */}
         <div>
